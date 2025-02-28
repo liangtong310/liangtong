@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国GDP前100城市近5年GDP数据变化</title>
+    <!-- 引入Echarts库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.1/dist/echarts.min.js"></script>
+    <style>
+        #main {
+            width: 800px;
+            height: 600px;
+            margin: 0 auto;
+        }
+
+        #citySelector {
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>中国GDP前100城市近5年GDP数据变化</h1>
+    <select id="citySelector">
+        <!-- 这里后续通过JavaScript动态填充城市选项 -->
+    </select>
+    <div id="main"></div>
+
+    <script>
+        // 假设的中国GDP前100城市数据结构，实际数据需要替换这里
+        const top100CityData = [
+            { city: '北京', data: [36102.6, 40269.6, 41610.9, 44652.8, 47805.6] },
+            { city: '上海', data: [38700.6, 43214.8, 44652.8, 47565.5, 51058.4] },
+            // 更多城市数据...
+        ];
+        const years = ['2020', '2021', '2022', '2023', '2024'];
+
+        // 基于准备好的dom，初始化echarts实例
+        const myChart = echarts.init(document.getElementById('main'));
+
+        // 填充城市选择框
+        const citySelector = document.getElementById('citySelector');
+        top100CityData.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city.city;
+            option.textContent = city.city;
+            citySelector.appendChild(option);
+        });
+
+        // 处理城市选择事件
+        citySelector.addEventListener('change', function () {
+            const selectedCity = this.value;
+            const selectedData = top100CityData.find(city => city.city === selectedCity).data;
+
+            const option = {
+                title: {
+                    text: selectedCity + '近5年GDP数据变化'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    data: years
+                },
+                yAxis: {},
+                series: [
+                    {
+                        name: selectedCity,
+                        type: 'line',
+                        data: selectedData
+                    }
+                ]
+            };
+
+            myChart.setOption(option);
+        });
+
+        // 初始显示第一个城市的数据
+        const firstCityData = top100CityData[0].data;
+        const initialOption = {
+            title: {
+                text: top100CityData[0].city + '近5年GDP数据变化'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                data: years
+            },
+            yAxis: {},
+            series: [
+                {
+                    name: top100CityData[0].city,
+                    type: 'line',
+                    data: firstCityData
+                }
+            ]
+        };
+
+        myChart.setOption(initialOption);
+    </script>
+</body>
+
+</html>
