@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简易植物大战僵尸界面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #9acd32; /* 草地背景色 */
+        }
+
+        #game-board {
+            width: 800px;
+            height: 600px;
+            margin: 0 auto;
+            border: 5px solid #333;
+            position: relative;
+        }
+
+        /* 植物样式示例 */
+      .plant {
+            width: 50px;
+            height: 50px;
+            position: absolute;
+        }
+
+        /* 僵尸样式示例 */
+      .zombie {
+            width: 60px;
+            height: 80px;
+            position: absolute;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>简易植物大战僵尸</h1>
+    <div id="game-board">
+        <!-- 这里通过JavaScript动态添加植物和僵尸元素 -->
+    </div>
+
+    <script>
+        // 以下是简单的JavaScript示例代码，用于在游戏界面添加一个植物
+        window.onload = function () {
+            const gameBoard = document.getElementById('game-board');
+            const newPlant = document.createElement('div');
+            newPlant.classList.add('plant');
+            newPlant.style.left = '100px';
+            newPlant.style.top = '200px';
+            gameBoard.appendChild(newPlant);
+        };
+    </script>
+</body>
+
+</html>
