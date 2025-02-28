@@ -2,39 +2,59 @@
 <html lang="zh-CN">
 
 <head>
-  <!-- 设置页面字符编码 -->
-  <meta charset="UTF-8">
-  <!-- 设置页面标题 -->
-  <title>感恩有您，我的父母</title>
-  <!-- 使页面在移动设备上正确显示 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- 为页面添加样式，这里简单设置了文本颜色和背景颜色，你可以根据喜好修改 -->
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      color: #333;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>东营市公交线路查询</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
 
-    h1 {
-      text-align: center;
-      color: #007BFF;
-    }
+        #search-container {
+            padding: 20px;
+            text-align: center;
+        }
 
-    p {
-      text-align: center;
-      line-height: 1.6;
-    }
-  </style>
+        #search-input {
+            padding: 10px;
+            width: 300px;
+            margin-right: 10px;
+        }
+
+        #search-button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #result-container {
+            padding: 20px;
+        }
+    </style>
 </head>
 
 <body>
-  <!-- 页面主标题 -->
-  <h1>考入CUC，感恩父母</h1>
-  <!-- 段落内容 -->
-  <p>经过不懈的努力，我终于考入了梦想中的CUC大学。在这个漫长的学习过程中，父母一直是我最坚实的后盾。</p>
-  <p>他们给予我无私的爱和支持，默默付出，为我创造了良好的学习环境。没有他们的鼓励和陪伴，我不可能取得今天的成绩。</p>
-  <p>在此，我想衷心地对父母说一声：谢谢你们！你们的恩情我将永远铭记在心。</p>
+    <h1>东营市公交线路查询</h1>
+    <div id="search-container">
+        <input type="text" id="search-input" placeholder="输入公交线路名称或站点名称">
+        <button id="search-button">查询</button>
+    </div>
+    <div id="result-container">
+        <!-- 这里将通过JavaScript动态显示查询结果 -->
+    </div>
+
+    <script>
+        document.getElementById('search-button').addEventListener('click', function () {
+            const searchInput = document.getElementById('search-input').value;
+            // 这里应该替换为实际的查询逻辑
+            // 例如，向服务器端发送请求获取公交线路数据
+            // 这里只是简单模拟显示搜索词
+            const resultContainer = document.getElementById('result-container');
+            resultContainer.innerHTML = `<p>您搜索的内容是：${searchInput}</p>`;
+        });
+    </script>
 </body>
 
 </html>
