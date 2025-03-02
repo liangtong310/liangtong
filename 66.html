@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国TOP5城市GDP演变</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: '微软雅黑', sans-serif;
+            background: #f0f2f5;
+            margin: 2rem;
+        }
+
+        .chart-box {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2d3436;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-box">
+        <h1>中国TOP5城市GDP发展轨迹（2019-2023）</h1>
+        <canvas id="myChart"></canvas>
+    </div>
+
+<script>
+// 最新经济数据（单位：亿元）
+const cities = [
+    { name: '上海', data: [38155,38701,43215,44653,47219], color: '#e74c3c' },
+    { name: '北京', data: [35371,36103,40270,41611,43761], color: '#3498db' },
+    { name: '深圳', data: [26927,27670,30665,32388,34606], color: '#2ecc71' },
+    { name: '广州', data: [23629,25019,28232,30015,30355], color: '#f1c40f' },
+    { name: '重庆', data: [23606,25003,27894,29129,30146], color: '#9b59b6' }
+];
+
+// 图表初始化
+const ctx = document.getElementById('myChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['2019','2020','2021','2022','2023'],
+        datasets: cities.map(city => ({
+            label: city.name,
+            data: city.data,
+            borderColor: city.color,
+            backgroundColor: `${city.color}20`,
+            borderWidth: 2,
+            pointRadius: 5,
+            tension: 0.3
+        }))
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}亿元`
+                }
+            }
+        },
+        scales: {
+            y: {
+                ticks: {
+                    callback: value => `${value/10000}万亿元`
+                }
+            }
+        }
+    }
+});
+</script>
+</body>
+</html>
