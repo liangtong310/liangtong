@@ -1,0 +1,63 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国GDP排名前10城市近5年GDP变化</title>
+    <style>
+        /* 整体页面样式 */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff; /* 淡蓝色背景 */
+            color: #333;
+            text-align: center;
+        }
+
+        /* 标题样式 */
+        h1 {
+            color: #007bff; /* 蓝色标题 */
+            margin-top: 30px;
+        }
+
+        /* 折线图容器样式 */
+     .chart-container {
+            width: 80%;
+            margin: 50px auto;
+        }
+
+        /* 说明区域样式 */
+     .info {
+            margin-top: 30px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>中国GDP排名前10城市近5年GDP变化展示</h1>
+    <!-- 用于显示折线图的容器 -->
+    <div class="chart-container" id="chart-container"></div>
+    <div class="info">
+        本图表展示了中国GDP排名前10城市近5年的GDP变化趋势。
+    </div>
+
+    <!-- 引入Chart.js库，用于绘制折线图 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 模拟数据替换为示例真实数据（这里数据是示例，需按最新准确数据调整）
+        const cityData = [
+            { name: '上海', gdp: [38700.58, 40270.44, 43214.85, 45545.59, 47590.15] },
+            { name: '北京', gdp: [36102.6, 38006.1, 41610.9, 44059.2, 46027.87] },
+            { name: '深圳', gdp: [27670.24, 28927.09, 30664.85, 32387.68, 34223.79] },
+            { name: '广州', gdp: [25019.11, 26156.71, 28231.97, 30015.04, 31512.22] },
+            { name: '重庆', gdp: [25002.79, 27894.02, 29129.03, 30753.8, 32943.41] },
+            { name: '苏州', gdp: [20170.5, 22718.34, 24002.7, 25320.7, 27100.9] },
+            { name: '成都', gdp: [17716.7, 19916.98, 21266.66, 23707.77, 25019.9] },
+            { name: '杭州', gdp: [16106.4, 18109.42, 20116.2, 22586.2, 24114.2] },
+            { name: '武汉', gdp: [15616.1, 17716.76, 19594.19, 21622.82, 23420.41] },
+            { name: '南京', gdp: [14817.95, 16355.33, 18010.47, 20103.94, 22508.69] }
+        ];
+
+        const ctx = document
