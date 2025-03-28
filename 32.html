@@ -1,62 +1,121 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>蜀道难 - 李白</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单汇率兑换器</title>
     <style>
         body {
-            font-family: "楷体", Kaiti, serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #f5f5dc;
-            line-height: 1.8;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
 
-        .highlight {
-            color: #b22222;
+        #converter {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
             font-weight: bold;
         }
 
-        ruby {
-            margin: 0 2px;
-        }
-
-        rt {
-            font-size: 0.6em;
-            color: #666;
-        }
-
-        h1 {
-            text-align: center;
-            color: #2f4f4f;
-            border-bottom: 2px solid #2f4f4f;
-            padding-bottom: 10px;
-        }
-
-        .author {
-            text-align: right;
-            font-style: italic;
-            margin: 15px 0;
+        #currency-image {
+            width: 200px;
+            height: auto;
+            margin-bottom: 20px;
         }
     </style>
 </head>
+
 <body>
-    <h1>蜀道难</h1>
-    <div class="author">—— 李白</div>
+    <div id="converter">
+        <img id="currency-image" src="OIP-C.jpg" alt="Currency Image">
+        <h2>简单汇率兑换器</h2>
+        <label for="amount">金额:</label>
+        <input type="number" id="amount" placeholder="请输入金额" required>
+        <label for="fromCurrency">从:</label>
+        <select id="fromCurrency">
+            <option value="USD">美元 (USD)</option>
+            <option value="CNY" selected>人民币 (CNY)</option>
+            <option value="EUR">欧元 (EUR)</option>
+        </select>
+        <label for="toCurrency">到:</label>
+        <select id="toCurrency">
+            <option value="USD">美元 (USD)</option>
+            <option value="CNY">人民币 (CNY)</option>
+            <option value="EUR" selected>欧元 (EUR)</option>
+        </select>
+        <button onclick="convert()">兑换</button>
+        <div id="result"></div>
+    </div>
+    <script>
+        function convert() {
+            const amount = parseFloat(document.getElementById('amount').value);
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
 
-    <p><ruby>噫<rt>yī</rt></ruby><ruby>吁<rt>xū</rt></ruby><ruby>嚱<rt>xī</rt></ruby>，<ruby>危<rt>wēi</rt></ruby><ruby>乎<rt>hū</rt></ruby><ruby>高<rt>gāo</rt></ruby><ruby>哉<rt>zāi</rt></ruby>！</p>
-    
-    <p class="highlight"><ruby>蜀<rt>shǔ</rt></ruby><ruby>道<rt>dào</rt></ruby><ruby>之<rt>zhī</rt></ruby><ruby>难<rt>nán</rt></ruby>，<ruby>难<rt>nán</rt></ruby><ruby>于<rt>yú</rt></ruby><ruby>上<rt>shàng</rt></ruby><ruby>青<rt>qīng</rt></ruby><ruby>天<rt>tiān</rt></ruby>！</p>
+            const exchangeRates = {
+                "USD": {
+                    "CNY": 7.2,
+                    "EUR": 0.9
+                },
+                "CNY": {
+                    "USD": 1 / 7.2,
+                    "EUR": 0.9 / 7.2
+                },
+                "EUR": {
+                    "USD": 1 / 0.9,
+                    "CNY": 7.2 / 0.9
+                }
+            };
 
-    <p><ruby>蚕<rt>cán</rt></ruby><ruby>丛<rt>cóng</rt></ruby><ruby>及<rt>jí</rt></ruby><ruby>鱼<rt>yú</rt></ruby><ruby>凫<rt>fú</rt></ruby>，<br>
-    <ruby>开<rt>kāi</rt></ruby><ruby>国<rt>guó</rt></ruby><ruby>何<rt>hé</rt></ruby><ruby>茫<rt>máng</rt></ruby><ruby>然<rt>rán</rt></ruby>！</p>
-
-    <!-- 后续诗句结构类似，受篇幅限制这里展示部分内容 -->
-    
-    <p class="highlight"><ruby>剑<rt>jiàn</rt></ruby><ruby>阁<rt>gé</rt></ruby><ruby>峥<rt>zhēng</rt></ruby><ruby>嵘<rt>róng</rt></ruby><ruby>而<rt>ér</rt></ruby><ruby>崔<rt>cuī</rt></ruby><ruby>嵬<rt>wéi</rt></ruby>，<br>
-    <ruby>一<rt>yī</rt></ruby><ruby>夫<rt>fū</rt></ruby><ruby>当<rt>dāng</rt></ruby><ruby>关<rt>guān</rt></ruby>，<ruby>万<rt>wàn</rt></ruby><ruby>夫<rt>fū</rt></ruby><ruby>莫<rt>mò</rt></ruby><ruby>开<rt>kāi</rt></ruby>。</p>
-
+            if (fromCurrency === toCurrency) {
+                document.getElementById('result').innerHTML = `兑换结果: ${amount} ${toCurrency}`;
+            } else {
+                const rate = exchangeRates[fromCurrency][toCurrency];
+                const result = amount * rate;
+                document.getElementById('result').innerHTML = `兑换结果: ${result.toFixed(2)} ${toCurrency}`;
+            }
+        }
+    </script>
 </body>
+
+</html>    
 </html>
         const ctx = document
