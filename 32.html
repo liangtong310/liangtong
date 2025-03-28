@@ -1,120 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>简单汇率兑换器</title>
-    <style>
-        body {
-            font-family: Arial, sans-erif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        #converter {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        input,
-        select {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-        }
-
-        button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        #result {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-
-        #currency-image {
-            width: 200px;
-            height: auto;
-            margin-bottom: 20px;
-        }
-    </style>
+    <title>山东 16 市 GDP 地图展示</title>
+    <!-- 引入 Echarts 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <!-- 引入山东地图数据 -->
+    <script src="https://echarts-maps.github.io/echarts-china-cities-js/maps/Shandong.js"></script>
 </head>
 
 <body>
-    <div id="converter">
-        <img id="currency-image" src="OIP-C.jpg" alt="Currency Image">
-        <h2>简单汇率兑换器</h2>
-        <label for="amount">金额:</label>
-        <input type="number" id="amount" placeholder="请输入金额" required>
-        <label for="fromCurrency">从:</label>
-        <select id="fromCurrency">
-            <option value="USD">美元 (USD)</option>
-            <option value="CNY" selected>人民币 (CNY)</option>
-            <option value="EUR">欧元 (EUR)</option>
-        </select>
-        <label for="toCurrency">到:</label>
-        <select id="toCurrency">
-            <option value="USD">美元 (USD)</option>
-            <option value="CNY">人民币 (CNY)</option>
-            <option value="EUR" selected>欧元 (EUR)</option>
-        </select>
-        <button onclick="convert()">兑换</button>
-        <div id="result"></div>
-    </div>
+    <!-- 定义地图容器 -->
+    <div id="main" style="width: 800px; height: 600px;"></div>
     <script>
-        function convert() {
-            const amount = parseFloat(document.getElementById('amount').value);
-            const fromCurrency = document.getElementById('fromCurrency').value;
-            const toCurrency = document.getElementById('toCurrency').value;
+        // 模拟山东 16 市的 GDP 数据（数据为虚构，可替换为真实数据）
+        const shandongGDPData = [
+            { name: '济南市', value: 12000 },
+            { name: '青岛市', value: 15000 },
+            { name: '淄博市', value: 5000 },
+            { name: '枣庄市', value: 2000 },
+            { name: '东营市', value: 4000 },
+            { name: '烟台市', value: 10000 },
+            { name: '潍坊市', value: 8000 },
+            { name: '济宁市', value: 6000 },
+            { name: '泰安市', value: 3000 },
+            { name: '威海市', value: 4500 },
+            { name: '日照市', value: 2500 },
+            { name: '临沂市', value: 7000 },
+            { name: '德州市', value: 3500 },
+            { name: '聊城市', value: 3200 },
+            { name: '滨州市', value: 3800 },
+            { name: '菏泽市', value: 4200 }
+        ];
 
-            const exchangeRates = {
-                "USD": {
-                    "CNY": 7.2,
-                    "EUR": 0.9
-                },
-                "CNY": {
-                    "USD": 1 / 7.2,
-                    "EUR": 0.9 / 7.2
-                },
-                "EUR": {
-                    "USD": 1 / 0.9,
-                    "CNY": 7.2 / 0.9
+        // 初始化 echarts 实例
+        const myChart = echarts.init(document.getElementById('main'));
+
+        // 指定图表的配置项和数据
+        const option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b}<br/>GDP: {c} 亿元'
+            },
+            visualMap: {
+                min: 0,
+                max: 15000,
+                left: 'left',
+                top: 'bottom',
+                text: ['高', '低'],
+                calculable: true
+            },
+            series: [
+                {
+                    name: '山东 16 市 GDP',
+                    type: 'map',
+                    map: 'Shandong',
+                    data: shandongGDPData
                 }
-            };
+            ]
+        };
 
-            if (fromCurrency === toCurrency) {
-                document.getElementById('result').innerHTML = `兑换结果: ${amount} ${toCurrency}`;
-            } else {
-                const rate = exchangeRates[fromCurrency][toCurrency];
-                const result = amount * rate;
-                document.getElementById('result').innerHTML = `兑换结果: ${result.toFixed(2)} ${toCurrency}`;
-            }
-        }
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
     </script>
 </body>
 
 </html>    
-
