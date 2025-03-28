@@ -29,3 +29,29 @@
             font-size: 16px;
             cursor: pointer;
         }
+    </style>
+</head>
+
+<body>
+    <div id="audio-container">
+        <!-- 替换为实际音频文件路径 -->
+        <audio id="audio" src="光年之外-G.E.M.邓紫棋.128 (2).mp3"></audio>
+        <button id="play-button">播放</button>
+        <button id="pause-button">暂停</button>
+    </div>
+    <script>
+        const audio = document.getElementById('audio');
+        const playButton = document.getElementById('play-button');
+        const pauseButton = document.getElementById('pause-button');
+
+        playButton.addEventListener('click', function () {
+            audio.play();
+        });
+
+        pauseButton.addEventListener('click', function () {
+            audio.pause();
+        });
+    </script>
+</body>
+
+</html> 
