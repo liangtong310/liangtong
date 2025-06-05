@@ -483,4 +483,315 @@
         </div>
     </footer>
 
+
+    
+    <!-- JavaScript -->
+    <script>
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 定义数据
+            const gdpData = [
+                { region: '北京市', type: 'east', data: [22926.0, 24779.1, 27041.2, 29883.0, 33106.0, 35445.1, 35943.3, 41045.6, 41540.9] },
+                { region: '天津市', type: 'east', data: [10640.6, 10879.5, 11477.2, 12450.6, 13362.9, 14055.5, 14008.0, 15685.1, 16132.2] },
+                { region: '河北省', type: 'east', data: [25208.9, 26398.4, 28474.1, 30640.8, 32494.6, 34978.6, 36013.8, 40397.1, 41988.0] },
+                { region: '山西省', type: 'central', data: [12094.7, 11836.4, 11946.4, 14484.3, 15958.1, 16961.6, 17835.6, 22870.4, 25583.9] },
+                { region: '内蒙古自治区', type: 'west', data: [12158.2, 12949.0, 13789.3, 14898.1, 16140.8, 17212.5, 17258.0, 21166.0, 23388.9] },
+                { region: '辽宁省', type: 'northeast', data: [20025.7, 20210.3, 20392.5, 21693.0, 23510.5, 24855.3, 25011.4, 27569.5, 28826.1] },
+                { region: '吉林省', type: 'northeast', data: [9966.5, 10018.0, 10427.0, 10922.0, 11253.8, 11726.8, 12256.0, 13163.8, 12818.1] },
+                { region: '黑龙江省', type: 'northeast', data: [12170.8, 11690.0, 11895.0, 12313.0, 12846.5, 13544.4, 13633.4, 14858.2, 15831.5] },
+                { region: '上海市', type: 'east', data: [25269.8, 26887.0, 29887.0, 32925.0, 36011.8, 37987.6, 38963.3, 43653.2, 44809.1] },
+                { region: '江苏省', type: 'east', data: [64830.5, 71255.9, 77350.9, 85869.8, 93207.6, 98656.8, 102807.7, 117392.4, 122089.3] },
+                { region: '浙江省', type: 'east', data: [40023.5, 43507.7, 47254.0, 52403.1, 58002.8, 62462.0, 64689.1, 74040.8, 78060.6] },
+                { region: '安徽省', type: 'central', data: [22519.7, 23831.2, 26307.7, 29676.2, 34010.9, 36845.5, 38061.5, 42565.2, 44607.7] },
+                { region: '福建省', type: 'east', data: [24942.1, 26819.5, 29609.4, 33842.4, 38687.8, 42326.6, 43608.6, 49566.1, 51765.1] },
+                { region: '江西省', type: 'central', data: [15667.8, 16780.9, 18388.6, 20210.8, 22716.5, 24667.3, 25782.0, 29827.8, 31213.8] },
+                { region: '山东省', type: 'east', data: [50774.8, 55288.8, 58762.5, 63012.1, 66648.9, 70540.5, 72798.2, 82875.2, 87576.9] },
+                { region: '河南省', type: 'central', data: [34574.8, 37084.1, 40249.3, 44824.9, 49935.9, 53717.8, 54259.4, 58071.4, 58220.1] },
+                { region: '湖北省', type: 'central', data: [28242.1, 30344.0, 33353.0, 37235.0, 42022.0, 45429.0, 43004.5, 50091.2, 52741.7] },
+                { region: '湖南省', type: 'central', data: [25881.3, 28538.6, 30853.5, 33828.1, 36329.7, 39894.1, 41542.6, 45713.5, 47558.6] },
+                { region: '广东省', type: 'east', data: [68173.0, 74732.4, 82163.2, 91648.7, 99945.2, 107986.9, 111151.6, 124719.5, 129513.6] },
+                { region: '广西壮族自治区', type: 'west', data: [13587.8, 14797.8, 16116.6, 17790.7, 19627.8, 21237.1, 22120.9, 25209.1, 26186.1] },
+                { region: '海南省', type: 'east', data: [3449.0, 3734.2, 4090.2, 4497.5, 4910.7, 5330.8, 5566.2, 6504.1, 6889.6] },
+                { region: '重庆市', type: 'west', data: [14623.8, 16040.5, 18023.0, 20066.3, 21588.8, 23605.8, 25041.4, 28077.3, 28576.1] },
+                { region: '四川省', type: 'west', data: [28891.3, 30342.0, 33138.5, 37905.1, 42902.1, 46363.8, 48501.6, 54088.0, 56610.2] },
+                { region: '贵州省', type: 'west', data: [9173.1, 10541.0, 11792.4, 13605.4, 15353.2, 16769.3, 17860.4, 19458.6, 20010.4] },
+                { region: '云南省', type: 'west', data: [14041.7, 14960.0, 16369.0, 18486.0, 20880.6, 23223.8, 24555.7, 27161.6, 28556.1] },
+                { region: '西藏自治区', type: 'west', data: [939.7, 1043.0, 1173.0, 1349.0, 1548.4, 1697.8, 1902.7, 2080.2, 2150.2] },
+                { region: '陕西省', type: 'west', data: [17402.5, 17898.8, 19045.8, 21473.5, 23941.9, 25793.2, 26014.1, 30121.7, 32838.2] },
+                { region: '甘肃省', type: 'west', data: [6518.4, 6556.6, 6907.9, 7336.7, 8104.1, 8718.3, 8979.7, 10225.5, 11121.4] },
+                { region: '青海省', type: 'west', data: [1847.7, 2011.0, 2258.2, 2465.1, 2748.0, 2941.1, 3009.8, 3385.1, 3623.3] },
+                { region: '宁夏回族自治区', type: 'west', data: [2473.9, 2579.4, 2781.4, 3200.3, 3510.2, 3748.5, 3956.3, 4588.2, 5104.6] },
+                { region: '新疆维吾尔自治区', type: 'west', data: [9264.5, 9306.9, 9630.8, 11159.9, 12809.4, 13597.1, 13800.7, 16311.6, 18042.7] }
+            ];
+            
+           // 定义年份数组
+    const years = ['2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'];
+    
+    // 定义区域分组
+    const regionGroups = {
+        east: ['北京市', '天津市', '河北省', '上海市', '江苏省', '浙江省', '福建省', '山东省', '广东省', '海南省'],
+        central: ['山西省', '安徽省', '江西省', '河南省', '湖北省', '湖南省'],
+        west: ['内蒙古自治区', '广西壮族自治区', '重庆市', '四川省', '贵州省', '云南省', '西藏自治区', '陕西省', '甘肃省', '青海省', '宁夏回族自治区', '新疆维吾尔自治区'],
+        northeast: ['辽宁省', '吉林省', '黑龙江省']
+    };
+    
+    // 定义区域颜色
+    const regionColors = {
+        east: '#165DFF',
+        central: '#00B42A',
+        west: '#FF7D00',
+        northeast: '#F53F3F',
+        // 为每个地区类型设置颜色
+        'east': '#165DFF',
+        'central': '#00B42A',
+        'west': '#FF7D00',
+        'northeast': '#F53F3F'
+    };
+    
+    // 初始化地区GDP对比分析图表
+    initRegionComparisonCharts(gdpData, years, regionGroups, regionColors);
+    
+    // 地区GDP对比分析
+    function initRegionComparisonCharts(gdpData, years, regionGroups, regionColors) {
+        // 1. 地区GDP对比柱状图
+        const regionBarCtx = document.getElementById('regionBarChart').getContext('2d');
+        const regionBarChart = new Chart(regionBarCtx, {
+            type: 'bar',
+            data: {
+                labels: gdpData.slice(0, 10).map(item => item.region),
+                datasets: [{
+                    label: '2022年GDP (亿元)',
+                    data: gdpData.slice(0, 10).map(item => item.data[8]),
+                    backgroundColor: gdpData.slice(0, 10).map(item => regionColors[item.type]),
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    barPercentage: 0.7,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return `GDP: ${context.raw.toLocaleString()} 亿元`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value >= 10000 ? value / 10000 + '万' : value;
+                            }
+                        }
+                    }
+                },
+                animations: {
+                    y: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            }
+        });
+        
+        // 切换显示前10名和全部地区按钮
+        document.getElementById('top10Btn').addEventListener('click', function() {
+            regionBarChart.data.labels = gdpData.slice(0, 10).map(item => item.region);
+            regionBarChart.data.datasets[0].data = gdpData.slice(0, 10).map(item => item.data[8]);
+            regionBarChart.data.datasets[0].backgroundColor = gdpData.slice(0, 10).map(item => regionColors[item.type]);
+            regionBarChart.update();
+            
+            this.classList.add('bg-primary', 'text-white');
+            this.classList.remove('bg-gray-200', 'text-neutral');
+            document.getElementById('allBtn').classList.add('bg-gray-200', 'text-neutral');
+            document.getElementById('allBtn').classList.remove('bg-primary', 'text-white');
+        });
+        
+        document.getElementById('allBtn').addEventListener('click', function() {
+            regionBarChart.data.labels = gdpData.map(item => item.region);
+            regionBarChart.data.datasets[0].data = gdpData.map(item => item.data[8]);
+            regionBarChart.data.datasets[0].backgroundColor = gdpData.map(item => regionColors[item.type]);
+            regionBarChart.update();
+            
+            this.classList.add('bg-primary', 'text-white');
+            this.classList.remove('bg-gray-200', 'text-neutral');
+            document.getElementById('top10Btn').classList.add('bg-gray-200', 'text-neutral');
+            document.getElementById('top10Btn').classList.remove('bg-primary', 'text-white');
+        });
+        
+        // 2. 四大区域GDP占比饼图
+        const regionalPieCtx = document.getElementById('regionalPieChart').getContext('2d');
+        const regionalPieChart = new Chart(regionalPieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['东部地区', '中部地区', '西部地区', '东北地区'],
+                datasets: [{
+                    data: [
+                        calculateRegionalTotal(gdpData, regionGroups.east, 1)[0],
+                        calculateRegionalTotal(gdpData, regionGroups.central, 1)[0],
+                        calculateRegionalTotal(gdpData, regionGroups.west, 1)[0],
+                        calculateRegionalTotal(gdpData, regionGroups.northeast, 1)[0]
+                    ],
+                    backgroundColor: [
+                        regionColors.east,
+                        regionColors.central,
+                        regionColors.west,
+                        regionColors.northeast
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${context.label}: ${value.toLocaleString()} 亿元 (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '65%',
+                animations: {
+                    animateRotate: true,
+                    animateScale: true
+                }
+            }
+        });
+        
+        // 3. 人均GDP对比柱状图
+        const perCapitaCtx = document.getElementById('perCapitaChart').getContext('2d');
+        const perCapitaChart = new Chart(perCapitaCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    '北京市', '上海市', '江苏省', '浙江省', '福建省', 
+                    '天津市', '广东省', '内蒙古自治区', '山东省', '重庆市'
+                ],
+                datasets: [{
+                    label: '2022年人均GDP (万元)',
+                    data: [19.0, 18.0, 14.4, 11.8, 12.6, 11.8, 10.1, 9.6, 8.8, 9.0],
+                    backgroundColor: [
+                        '#165DFF', '#165DFF', '#165DFF', '#165DFF', '#165DFF',
+                        '#165DFF', '#165DFF', '#00B42A', '#165DFF', '#00B42A'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    barPercentage: 0.7,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return `人均GDP: ${context.raw} 万元`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value;
+                            }
+                        }
+                    }
+                },
+                animations: {
+                    y: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            }
+        });
+        
+        // 辅助函数：计算区域总GDP
+        function calculateRegionalTotal(data, regions, yearCount) {
+            const result = Array(yearCount).fill(0);
+            for (const region of regions) {
+                const regionData = data.find(item => item.region === region);
+                if (regionData) {
+                    for (let i = 0; i < yearCount; i++) {
+                        result[i] += regionData.data[i];
+                    }
+                }
+            }
+            return result;
+        }
+    }
+});
    
