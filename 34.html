@@ -568,6 +568,25 @@
                     });
                 });
             });
+            
+            // 筛选器功能
+            const yearFilter = document.getElementById('yearFilter');
+            const regionFilter = document.getElementById('regionFilter');
+            const resetFilters = document.getElementById('resetFilters');
+            
+            yearFilter.addEventListener('change', function() {
+                filterTable(gdpData, years);
+            });
+            
+            regionFilter.addEventListener('change', function() {
+                filterTable(gdpData, years);
+            });
+            
+            resetFilters.addEventListener('click', function() {
+                yearFilter.value = 'all';
+                regionFilter.value = 'all';
+                filterTable(gdpData, years);
+            });
         });
         
         // 初始化图表
@@ -623,3 +642,189 @@
                                 color: 'rgba(0, 0, 0, 0.05)'
                             },
                             ticks: {
+                                callback: function(value) {
+                                    return value >= 10000 ? value / 10000 + '万' : value;
+                                }
+                            }
+                        }
+                    },
+                    animations: {
+                        y: {
+                            duration: 1000,
+                            easing: 'easeOutQuart'
+                        }
+                    }
+                }
+            });
+            
+            // 切换显示前10名和全部地区按钮
+            document.getElementById('top10Btn').addEventListener('click', function() {
+                regionBarChart.data.labels = gdpData.slice(0, 10).map(item => item.region);
+                regionBarChart.data.datasets[0].data = gdpData.slice(0, 10).map(item => item.data[8]);
+                regionBarChart.data.datasets[0].backgroundColor = gdpData.slice(0, 10).map(item => regionColors[item.type]);
+                regionBarChart.update();
+                
+                this.classList.add('bg-primary', 'text-white');
+                this.classList.remove('bg-gray-200', 'text-neutral');
+                document.getElementById('allBtn').classList.add('bg-gray-200', 'text-neutral');
+                document.getElementById('allBtn').classList.remove('bg-primary', 'text-white');
+            });
+            
+            document.getElementById('allBtn').addEventListener('click', function() {
+                regionBarChart.data.labels = gdpData.map(item => item.region);
+                regionBarChart.data.datasets[0].data = gdpData.map(item => item.data[8]);
+                regionBarChart.data.datasets[0].backgroundColor = gdpData.map(item => regionColors[item.type]);
+                regionBarChart.update();
+                
+                this.classList.add('bg-primary', 'text-white');
+                this.classList.remove('bg-gray-200', 'text-neutral');
+                document.getElementById('top10Btn').classList.add('bg-gray-200', 'text-neutral');
+                document.getElementById('top10Btn').classList.remove('bg-primary', 'text-white');
+            });
+            
+            // 2. 四大区域GDP占比饼图
+            const regionalPieCtx = document.getElementById('regionalPieChart').getContext('2d');
+            const regionalPieChart = new Chart(regionalPieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['东部地区', '中部地区', '西部地区', '东北地区'],
+                    datasets: [{
+                        data: [
+                            calculateRegionalTotal(gdpData, regionGroups.east, 1)[0],
+                            calculateRegionalTotal(gdpData, regionGroups.central, 1)[0],
+                            calculateRegionalTotal(gdpData, regionGroups.west, 1)[0],
+                            calculateRegionalTotal(gdpData, regionGroups.northeast, 1)[0]
+                        ],
+                        backgroundColor: [
+                            regionColors.east,
+                            regionColors.central,
+                            regionColors.west,
+                            regionColors.northeast
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${context.label}: ${value.toLocaleString()} 亿元 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%',
+                    animations: {
+                        animateRotate: true,
+                        animateScale: true
+                    }
+                }
+            });
+            
+            // 3. 人均GDP对比柱状图
+            const perCapitaCtx = document.getElementById('perCapitaChart').getContext('2d');
+            const perCapitaChart = new Chart(perCapitaCtx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        '北京市', '上海市', '江苏省', '浙江省', '福建省', 
+                        '天津市', '广东省', '内蒙古自治区', '山东省', '重庆市'
+                    ],
+                    datasets: [{
+                        label: '2022年人均GDP (万元)',
+                        data: [19.0, 18.0, 14.4, 11.8, 12.6, 11.8, 10.1, 9.6, 8.8, 9.0],
+                        backgroundColor: [
+                            '#165DFF', '#165DFF', '#165DFF', '#165DFF', '#165DFF',
+                            '#165DFF', '#165DFF', '#00B42A', '#165DFF', '#00B42A'
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        barPercentage: 0.7,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return `人均GDP: ${context.raw} 万元`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value;
+                                }
+                            }
+                        }
+                    },
+                    animations: {
+                        y: {
+                            duration: 1000,
+                            easing: 'easeOutQuart'
+                        }
+                    }
+                }
+            });
+            
+            // 4. 趋势变化折线图
+            const trendLineCtx = document.getElementById('trendLineChart').getContext('2d');
+            const trendLineChart = new Chart(trendLineCtx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: '东部地区',
+                            data: calculateRegionalTotal(gdpData, regionGroups.east, years.length),
+                            borderColor: regionColors.east,
