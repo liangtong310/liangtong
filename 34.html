@@ -540,6 +540,21 @@
                 'northeast': '#F53F3F'
             };
             
+            // 计算区域GDP总量
+            function calculateRegionalTotal(data, regionNames, count) {
+                const result = Array(count).fill(0);
+                
+                for (const region of data) {
+                    if (regionNames.includes(region.region)) {
+                        for (let i = 0; i < count; i++) {
+                            result[i] += region.data[i];
+                        }
+                    }
+                }
+                
+                return result;
+            }
+            
             // 初始化图表
             initCharts(gdpData, years, regionGroups, regionColors);
             
@@ -690,10 +705,10 @@
                     labels: ['东部地区', '中部地区', '西部地区', '东北地区'],
                     datasets: [{
                         data: [
-                            calculateRegionalTotal(gdpData, regionGroups.east, 1)[0],
-                            calculateRegionalTotal(gdpData, regionGroups.central, 1)[0],
-                            calculateRegionalTotal(gdpData, regionGroups.west, 1)[0],
-                            calculateRegionalTotal(gdpData, regionGroups.northeast, 1)[0]
+                            calculateRegionalTotal(gdpData, regionGroups.east, 9)[8],
+                            calculateRegionalTotal(gdpData, regionGroups.central, 9)[8],
+                            calculateRegionalTotal(gdpData, regionGroups.west, 9)[8],
+                            calculateRegionalTotal(gdpData, regionGroups.northeast, 9)[8]
                         ],
                         backgroundColor: [
                             regionColors.east,
@@ -828,3 +843,204 @@
                             label: '东部地区',
                             data: calculateRegionalTotal(gdpData, regionGroups.east, years.length),
                             borderColor: regionColors.east,
+                            backgroundColor: `${regionColors.east}20`,
+                            borderWidth: 3,
+                            tension: 0.2,
+                            fill: true,
+                            pointBackgroundColor: regionColors.east,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: '中部地区',
+                            data: calculateRegionalTotal(gdpData, regionGroups.central, years.length),
+                            borderColor: regionColors.central,
+                            backgroundColor: `${regionColors.central}20`,
+                            borderWidth: 3,
+                            tension: 0.2,
+                            fill: true,
+                            pointBackgroundColor: regionColors.central,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: '西部地区',
+                            data: calculateRegionalTotal(gdpData, regionGroups.west, years.length),
+                            borderColor: regionColors.west,
+                            backgroundColor: `${regionColors.west}20`,
+                            borderWidth: 3,
+                            tension: 0.2,
+                            fill: true,
+                            pointBackgroundColor: regionColors.west,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: '东北地区',
+                            data: calculateRegionalTotal(gdpData, regionGroups.northeast, years.length),
+                            borderColor: regionColors.northeast,
+                            backgroundColor: `${regionColors.northeast}20`,
+                            borderWidth: 3,
+                            tension: 0.2,
+                            fill: true,
+                            pointBackgroundColor: regionColors.northeast,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw.toLocaleString()} 亿元`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value >= 10000 ? value / 10000 + '万' : value;
+                                }
+                            }
+                        }
+                    },
+                    animations: {
+                        tension: {
+                            duration: 1000,
+                            easing: 'linear'
+                        }
+                    }
+                }
+            });
+            
+            // 复选框事件监听
+            document.getElementById('eastCheckbox').addEventListener('change', function() {
+                trendLineChart.data.datasets[0].hidden = !this.checked;
+                trendLineChart.update();
+            });
+            
+            document.getElementById('centralCheckbox').addEventListener('change', function() {
+                trendLineChart.data.datasets[1].hidden = !this.checked;
+                trendLineChart.update();
+            });
+            
+            document.getElementById('westCheckbox').addEventListener('change', function() {
+                trendLineChart.data.datasets[2].hidden = !this.checked;
+                trendLineChart.update();
+            });
+            
+            document.getElementById('northeastCheckbox').addEventListener('change', function() {
+                trendLineChart.data.datasets[3].hidden = !this.checked;
+                trendLineChart.update();
+            });
+            
+            // 5. 增速对比柱状图
+            const growthRateCtx = document.getElementById('growthRateChart').getContext('2d');
+            const growthRateChart = new Chart(growthRateCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['东部地区', '中部地区', '西部地区', '东北地区'],
+                    datasets: [{
+                        label: '2014-2022年年均增速 (%)',
+                        data: [6.5, 7.2, 6.8, 5.2],
+                        backgroundColor: [
+                            regionColors.east,
+                            regionColors.central,
+                            regionColors.west,
+                            regionColors.northeast
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        barPercentage: 0.7,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return `年均增速: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    animations: {
+                        y: {
+                            duration: 1000,
+                            easing: 'easeOutQuart'
+                        }
+                    }
+                }
+            })
