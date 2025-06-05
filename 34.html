@@ -1,797 +1,126 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中国各地区GDP数据分析与可视化</title>
-    <!-- 引入Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入Font Awesome -->
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <!-- 引入Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-    
-    <!-- Tailwind配置 -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#165DFF',
-                        secondary: '#FF7D00',
-                        tertiary: '#00B42A',
-                        neutral: '#6B7280',
-                        'neutral-light': '#F3F4F6',
-                        'neutral-dark': '#1F2937'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
-    
-    <!-- 自定义工具类 -->
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .content-auto {
-                content-visibility: auto;
-            }
-            .card-shadow {
-                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
-            }
-            .hover-scale {
-                transition: transform 0.3s ease;
-            }
-            .hover-scale:hover {
-                transform: scale(1.02);
-            }
-            .gradient-bg {
-                background: linear-gradient(120deg, #165DFF, #00B42A);
-            }
+    <title>GDP 数据可视化</title>
+    <!-- 引入 ECharts 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <style>
+        /* 设置图表容器的样式 */
+        .chart {
+            width: 100%;
+            height: 400px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
-<body class="bg-gray-50 font-sans">
-    <!-- 导航栏 -->
-    <nav class="sticky top-0 z-50 bg-white shadow-md transition-all duration-300">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <i class="fa fa-line-chart text-primary text-2xl"></i>
-                <h1 class="text-xl md:text-2xl font-bold text-neutral-dark">中国各地区GDP数据分析</h1>
-            </div>
-            <div class="hidden md:flex space-x-6">
-                <a href="#overview" class="text-neutral hover:text-primary transition-colors">概览</a>
-                <a href="#comparison" class="text-neutral hover:text-primary transition-colors">地区对比</a>
-                <a href="#trends" class="text-neutral hover:text-primary transition-colors">趋势分析</a>
-                <a href="#table" class="text-neutral hover:text-primary transition-colors">数据表格</a>
-            </div>
-            <button class="md:hidden text-neutral text-xl">
-                <i class="fa fa-bars"></i>
-            </button>
-        </div>
-    </nav>
 
-    <!-- 英雄区 -->
-    <header class="gradient-bg text-white py-16 md:py-24">
-        <div class="container mx-auto px-4 text-center">
-            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold mb-4">中国各地区GDP数据可视化</h1>
-            <p class="text-[clamp(1rem,2vw,1.25rem)] max-w-3xl mx-auto opacity-90">
-                深入分析中国各省份、自治区和直辖市的GDP发展趋势，探索经济增长模式与区域差异
-            </p>
-            <div class="mt-8 flex flex-wrap justify-center gap-4">
-                <a href="#comparison" class="bg-white text-primary px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
-                    查看地区对比
-                </a>
-                <a href="#table" class="bg-transparent border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white/10 transition-all">
-                    浏览详细数据
-                </a>
-            </div>
-        </div>
-    </header>
+<body>
+    <!-- 第一个图表容器 -->
+    <div id="barChart" class="chart"></div>
+    <!-- 第二个图表容器 -->
+    <div id="lineChart" class="chart"></div>
 
-    <!-- 主要内容 -->
-    <main class="container mx-auto px-4 py-12">
-        <!-- 概览部分 -->
-        <section id="overview" class="mb-16 scroll-mt-20">
-            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-neutral-dark mb-8 flex items-center">
-                <i class="fa fa-info-circle text-primary mr-3"></i>
-                经济概览
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <!-- 卡片1：全国GDP总量 -->
-                <div class="bg-white rounded-xl p-6 card-shadow hover-scale">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-neutral text-sm mb-1">2022年全国GDP总量</p>
-                            <h3 class="text-2xl md:text-3xl font-bold text-neutral-dark">1,210,207亿元</h3>
-                            <p class="text-tertiary text-sm mt-2">
-                                <i class="fa fa-arrow-up"></i> 3.0% 同比增长
-                            </p>
-                        </div>
-                        <div class="bg-primary/10 p-3 rounded-lg">
-                            <i class="fa fa-globe text-primary text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 卡片2：GDP最高省份 -->
-                <div class="bg-white rounded-xl p-6 card-shadow hover-scale">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-neutral text-sm mb-1">GDP最高省份</p>
-                            <h3 class="text-2xl md:text-3xl font-bold text-neutral-dark">广东省</h3>
-                            <p class="text-primary text-sm mt-2">
-                                129,513.6亿元 (2022年)
-                            </p>
-                        </div>
-                        <div class="bg-secondary/10 p-3 rounded-lg">
-                            <i class="fa fa-trophy text-secondary text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 卡片3：人均GDP -->
-                <div class="bg-white rounded-xl p-6 card-shadow hover-scale">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-neutral text-sm mb-1">2022年人均GDP</p>
-                            <h3 class="text-2xl md:text-3xl font-bold text-neutral-dark">85,698元</h3>
-                            <p class="text-tertiary text-sm mt-2">
-                                <i class="fa fa-arrow-up"></i> 2.9% 同比增长
-                            </p>
-                        </div>
-                        <div class="bg-tertiary/10 p-3 rounded-lg">
-                            <i class="fa fa-user-circle text-tertiary text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 卡片4：GDP增速 -->
-                <div class="bg-white rounded-xl p-6 card-shadow hover-scale">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-neutral text-sm mb-1">增速最快省份</p>
-                            <h3 class="text-2xl md:text-3xl font-bold text-neutral-dark">山西省</h3>
-                            <p class="text-tertiary text-sm mt-2">
-                                <i class="fa fa-line-chart"></i> 11.9% (2021-2022)
-                            </p>
-                        </div>
-                        <div class="bg-neutral/10 p-3 rounded-lg">
-                            <i class="fa fa-rocket text-neutral text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 分析摘要 -->
-            <div class="bg-white rounded-xl p-6 md:p-8 card-shadow">
-                <h3 class="text-xl font-bold text-neutral-dark mb-4">经济发展分析摘要</h3>
-                <div class="prose max-w-none">
-                    <p class="mb-3">2022年中国经济面对复杂的国内外环境，仍然保持了稳定增长的态势，全国GDP总量达到1,210,207亿元，同比增长3.0%。</p>
-                    <p class="mb-3">广东省以129,513.6亿元的GDP总量继续领跑全国，连续34年位居全国第一。江苏省紧随其后，GDP总量达到122,089.3亿元。</p>
-                    <p class="mb-3">从区域分布来看，东部沿海地区仍然是中国经济最发达的地区，GDP总量占全国的比重超过50%。中部地区经济增长迅速，特别是湖北省在经历了2020年的疫情冲击后，经济恢复势头强劲。</p>
-                    <p>西部地区和东北地区经济也保持了稳定增长，但与东部地区的差距仍然较大。人均GDP方面，北京市、上海市和江苏省位居前三，分别达到190,000元、180,000元和144,000元。</p>
-                </div>
-            </div>
-        </section>
-        
-        <!-- 地区对比部分 -->
-        <section id="comparison" class="mb-16 scroll-mt-20">
-            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-neutral-dark mb-8 flex items-center">
-                <i class="fa fa-bar-chart text-primary mr-3"></i>
-                地区GDP对比分析
-            </h2>
-            
-            <div class="bg-white rounded-xl p-6 md:p-8 card-shadow mb-8">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                    <h3 class="text-xl font-bold text-neutral-dark mb-4 md:mb-0">2022年各地区GDP总量对比</h3>
-                    <div class="flex space-x-2">
-                        <button id="top10Btn" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
-                            前10名
-                        </button>
-                        <button id="allBtn" class="bg-gray-200 text-neutral px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">
-                            全部
-                        </button>
-                    </div>
-                </div>
-                <div class="h-[400px]">
-                    <canvas id="regionBarChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <!-- 东部、中部、西部、东北四大区域对比 -->
-                <div class="bg-white rounded-xl p-6 md:p-8 card-shadow">
-                    <h3 class="text-xl font-bold text-neutral-dark mb-6">四大区域GDP占比(2022)</h3>
-                    <div class="h-[350px]">
-                        <canvas id="regionalPieChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- 人均GDP对比 -->
-                <div class="bg-white rounded-xl p-6 md:p-8 card-shadow">
-                    <h3 class="text-xl font-bold text-neutral-dark mb-6">2022年人均GDP前10名地区</h3>
-                    <div class="h-[350px]">
-                        <canvas id="perCapitaChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 分析摘要 -->
-            <div class="bg-white rounded-xl p-6 md:p-8 card-shadow">
-                <h3 class="text-xl font-bold text-neutral-dark mb-4">区域经济发展特征</h3>
-                <div class="prose max-w-none">
-                    <p class="mb-3">从地区分布来看，东部地区继续保持领先地位，占全国GDP总量的52.5%。中部地区占比22.0%，西部地区占比20.1%，东北地区占比5.4%。</p>
-                    <p class="mb-3">人均GDP方面，北京市以190,000元位居全国第一，上海市和江苏省分别以180,000元和144,000元紧随其后。西部地区的青海省和宁夏回族自治区人均GDP相对较低，分别为60,000元和58,000元左右。</p>
-                    <p>值得注意的是，山西省在2022年GDP增速达到11.9%，主要得益于能源价格上涨和产业结构优化。此外，海南省在自由贸易港政策的推动下，经济增长也较为显著，增速达到5.9%。</p>
-                </div>
-            </div>
-        </section>
-        
-        <!-- 趋势分析部分 -->
-        <section id="trends" class="mb-16 scroll-mt-20">
-            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-neutral-dark mb-8 flex items-center">
-                <i class="fa fa-line-chart text-primary mr-3"></i>
-                时间趋势分析
-            </h2>
-            
-            <div class="bg-white rounded-xl p-6 md:p-8 card-shadow mb-8">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                    <h3 class="text-xl font-bold text-neutral-dark mb-4 md:mb-0">2014-2022年GDP趋势变化</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="eastCheckbox" checked class="mr-2 accent-primary">
-                            <label for="eastCheckbox" class="text-sm">东部地区</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="centralCheckbox" checked class="mr-2 accent-primary">
-                            <label for="centralCheckbox" class="text-sm">中部地区</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="westCheckbox" checked class="mr-2 accent-primary">
-                            <label for="westCheckbox" class="text-sm">西部地区</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="northeastCheckbox" checked class="mr-2 accent-primary">
-                            <label for="northeastCheckbox" class="text-sm">东北地区</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="h-[400px]">
-                    <canvas id="trendLineChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <!-- 增速对比 -->
-                <div class="bg-white rounded-xl p-6 md:p-8 card-shadow">
-                    <h3 class="text-xl font-bold text-neutral-dark mb-6">2014-2022年平均增速</h3>
-                    <div class="h-[350px]">
-                        <canvas id="growthRateChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- 五年变化率 -->
-                <div class="bg-white rounded-xl p-6 md:p-8 card-shadow">
-                    <h3 class="text-xl font-bold text-neutral-dark mb-6">2018-2022年GDP增长倍数</h3>
-                    <div class="h-[350px]">
-                        <canvas id="growthMultiplierChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 分析摘要 -->
-            <div class="bg-white rounded-xl p-6 md:p-8 card-shadow">
-                <h3 class="text-xl font-bold text-neutral-dark mb-4">经济增长趋势分析</h3>
-                <div class="prose max-w-none">
-                    <p class="mb-3">从2014年到2022年，全国GDP总量从64.1万亿元增长到121.0万亿元，增长了88.8%。各地区经济均保持了增长态势，但增速存在一定差异。</p>
-                    <p class="mb-3">东部地区由于基数较大，增速相对较为平稳，年均增速约为6.5%。中部地区增速最快，年均增速达到7.2%，显示出强劲的发展势头。西部地区年均增速6.8%，东北地区年均增速5.2%。</p>
-                    <p>从五年增长倍数来看，山西省以1.42倍的增长倍数位居全国第一，主要得益于能源产业的快速发展。贵州省、云南省等西部地区省份增长倍数也较高，均超过1.3倍，显示出后发优势。</p>
-                </div>
-            </div>
-        </section>
-        
-        <!-- 数据表格部分 -->
-        <section id="table" class="scroll-mt-20">
-            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-neutral-dark mb-8 flex items-center">
-                <i class="fa fa-table text-primary mr-3"></i>
-                详细数据
-            </h2>
-            
-            <div class="bg-white rounded-xl p-6 md:p-8 card-shadow">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                    <h3 class="text-xl font-bold text-neutral-dark mb-4 md:mb-0">各地区历年GDP数据</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <div class="relative">
-                            <select id="yearFilter" class="pl-4 pr-10 py-2 bg-gray-100 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                <option value="all">全部年份</option>
-                                <option value="2022">2022年</option>
-                                <option value="2021">2021年</option>
-                                <option value="2020">2020年</option>
-                                <option value="2019">2019年</option>
-                                <option value="2018">2018年</option>
-                            </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                <i class="fa fa-chevron-down text-neutral"></i>
-                            </div>
-                        </div>
-                        <div class="relative">
-                            <select id="regionFilter" class="pl-4 pr-10 py-2 bg-gray-100 border border-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                <option value="all">所有地区</option>
-                                <option value="east">东部地区</option>
-                                <option value="central">中部地区</option>
-                                <option value="west">西部地区</option>
-                                <option value="northeast">东北地区</option>
-                            </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                <i class="fa fa-chevron-down text-neutral"></i>
-                            </div>
-                        </div>
-                        <button id="resetFilters" class="bg-gray-200 text-neutral px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">
-                            重置筛选
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral uppercase tracking-wider">
-                                    地区
-                                    <button class="ml-1 text-neutral hover:text-primary">
-                                        <i class="fa fa-sort"></i>
-                                    </button>
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral uppercase tracking-wider">
-                                    2022年
-                                    <button class="ml-1 text-neutral hover:text-primary">
-                                        <i class="fa fa-sort"></i>
-                                    </button>
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral uppercase tracking-wider">
-                                    2021年
-                                    <button class="ml-1 text-neutral hover:text-primary">
-                                        <i class="fa fa-sort"></i>
-                                    </button>
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral uppercase tracking-wider">
-                                    2020年
-                                    <button class="ml-1 text-neutral hover:text-primary">
-                                        <i class="fa fa-sort"></i>
-                                    </button>
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral uppercase tracking-wider">
-                                    2019年
-                                    <button class="ml-1 text-neutral hover:text-primary">
-                                        <i class="fa fa-sort"></i>
-                                    </button>
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral uppercase tracking-wider">
-                                    2018年
-                                    <button class="ml-1 text-neutral hover:text-primary">
-                                        <i class="fa fa-sort"></i>
-                                    </button>
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral uppercase tracking-wider">
-                                    2017年
-                                    <button class="ml-1 text-neutral hover:text-primary">
-                                        <i class="fa fa-sort"></i>
-                                    </button>
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral uppercase tracking-wider">
-                                    2016年
-                                    <button class="ml-1 text-neutral hover:text-primary">
-                                        <i class="fa fa-sort"></i>
-                                    </button>
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral uppercase tracking-wider">
-                                    2015年
-                                    <button class="ml-1 text-neutral hover:text-primary">
-                                        <i class="fa fa-sort"></i>
-                                    </button>
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral uppercase tracking-wider">
-                                    2014年
-                                    <button class="ml-1 text-neutral hover:text-primary">
-                                        <i class="fa fa-sort"></i>
-                                    </button>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="gdpTableBody" class="bg-white divide-y divide-gray-200">
-                            <!-- 表格数据将通过JavaScript动态生成 -->
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="mt-6 flex justify-between items-center">
-                    <div class="text-sm text-neutral">
-                        显示 <span id="startRange">1</span> 到 <span id="endRange">10</span> 条，共 <span id="totalItems">31</span> 条记录
-                    </div>
-                    <div class="flex space-x-1">
-                        <button id="prevPage" class="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                            <i class="fa fa-chevron-left"></i>
-                        </button>
-                        <button class="px-3 py-1 bg-primary text-white rounded">1</button>
-                        <button class="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50">2</button>
-                        <button class="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50">3</button>
-                        <button id="nextPage" class="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50">
-                            <i class="fa fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- 页脚 -->
-    <footer class="bg-neutral-dark text-white py-12">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                    <div class="flex items-center space-x-2 mb-4">
-                        <i class="fa fa-line-chart text-primary text-2xl"></i>
-                        <h2 class="text-xl font-bold">中国各地区GDP数据分析</h2>
-                    </div>
-                    <p class="text-gray-400 mb-4">
-                        本网站提供中国各省份、自治区和直辖市的GDP数据可视化与分析，帮助用户了解中国经济发展的区域差异与趋势。
-                    </p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fa fa-weibo text-xl"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fa fa-wechat text-xl"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fa fa-twitter text-xl"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fa fa-linkedin text-xl"></i>
-                        </a>
-                    </div>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">快速链接</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#overview" class="text-gray-400 hover:text-white transition-colors">经济概览</a></li>
-                        <li><a href="#comparison" class="text-gray-400 hover:text-white transition-colors">地区对比</a></li>
-                        <li><a href="#trends" class="text-gray-400 hover:text-white transition-colors">趋势分析</a></li>
-                        <li><a href="#table" class="text-gray-400 hover:text-white transition-colors">详细数据</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">数据来源</h3>
-                    <p class="text-gray-400 mb-4">
-                        本网站数据来源于中国国家统计局及各地方统计局公开数据，仅供参考。
-                    </p>
-                    <p class="text-gray-400">
-                        数据更新日期: 2023年6月
-                    </p>
-                </div>
-            </div>
-            
-            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
-                <p>© 2023 中国各地区GDP数据分析网站. 保留所有权利.</p>
-            </div>
-        </div>
-    </footer>
-
-
-    
-    <!-- JavaScript -->
     <script>
-        // 页面加载完成后执行
-        document.addEventListener('DOMContentLoaded', function() {
-            // 定义数据
-            const gdpData = [
-                { region: '北京市', type: 'east', data: [22926.0, 24779.1, 27041.2, 29883.0, 33106.0, 35445.1, 35943.3, 41045.6, 41540.9] },
-                { region: '天津市', type: 'east', data: [10640.6, 10879.5, 11477.2, 12450.6, 13362.9, 14055.5, 14008.0, 15685.1, 16132.2] },
-                { region: '河北省', type: 'east', data: [25208.9, 26398.4, 28474.1, 30640.8, 32494.6, 34978.6, 36013.8, 40397.1, 41988.0] },
-                { region: '山西省', type: 'central', data: [12094.7, 11836.4, 11946.4, 14484.3, 15958.1, 16961.6, 17835.6, 22870.4, 25583.9] },
-                { region: '内蒙古自治区', type: 'west', data: [12158.2, 12949.0, 13789.3, 14898.1, 16140.8, 17212.5, 17258.0, 21166.0, 23388.9] },
-                { region: '辽宁省', type: 'northeast', data: [20025.7, 20210.3, 20392.5, 21693.0, 23510.5, 24855.3, 25011.4, 27569.5, 28826.1] },
-                { region: '吉林省', type: 'northeast', data: [9966.5, 10018.0, 10427.0, 10922.0, 11253.8, 11726.8, 12256.0, 13163.8, 12818.1] },
-                { region: '黑龙江省', type: 'northeast', data: [12170.8, 11690.0, 11895.0, 12313.0, 12846.5, 13544.4, 13633.4, 14858.2, 15831.5] },
-                { region: '上海市', type: 'east', data: [25269.8, 26887.0, 29887.0, 32925.0, 36011.8, 37987.6, 38963.3, 43653.2, 44809.1] },
-                { region: '江苏省', type: 'east', data: [64830.5, 71255.9, 77350.9, 85869.8, 93207.6, 98656.8, 102807.7, 117392.4, 122089.3] },
-                { region: '浙江省', type: 'east', data: [40023.5, 43507.7, 47254.0, 52403.1, 58002.8, 62462.0, 64689.1, 74040.8, 78060.6] },
-                { region: '安徽省', type: 'central', data: [22519.7, 23831.2, 26307.7, 29676.2, 34010.9, 36845.5, 38061.5, 42565.2, 44607.7] },
-                { region: '福建省', type: 'east', data: [24942.1, 26819.5, 29609.4, 33842.4, 38687.8, 42326.6, 43608.6, 49566.1, 51765.1] },
-                { region: '江西省', type: 'central', data: [15667.8, 16780.9, 18388.6, 20210.8, 22716.5, 24667.3, 25782.0, 29827.8, 31213.8] },
-                { region: '山东省', type: 'east', data: [50774.8, 55288.8, 58762.5, 63012.1, 66648.9, 70540.5, 72798.2, 82875.2, 87576.9] },
-                { region: '河南省', type: 'central', data: [34574.8, 37084.1, 40249.3, 44824.9, 49935.9, 53717.8, 54259.4, 58071.4, 58220.1] },
-                { region: '湖北省', type: 'central', data: [28242.1, 30344.0, 33353.0, 37235.0, 42022.0, 45429.0, 43004.5, 50091.2, 52741.7] },
-                { region: '湖南省', type: 'central', data: [25881.3, 28538.6, 30853.5, 33828.1, 36329.7, 39894.1, 41542.6, 45713.5, 47558.6] },
-                { region: '广东省', type: 'east', data: [68173.0, 74732.4, 82163.2, 91648.7, 99945.2, 107986.9, 111151.6, 124719.5, 129513.6] },
-                { region: '广西壮族自治区', type: 'west', data: [13587.8, 14797.8, 16116.6, 17790.7, 19627.8, 21237.1, 22120.9, 25209.1, 26186.1] },
-                { region: '海南省', type: 'east', data: [3449.0, 3734.2, 4090.2, 4497.5, 4910.7, 5330.8, 5566.2, 6504.1, 6889.6] },
-                { region: '重庆市', type: 'west', data: [14623.8, 16040.5, 18023.0, 20066.3, 21588.8, 23605.8, 25041.4, 28077.3, 28576.1] },
-                { region: '四川省', type: 'west', data: [28891.3, 30342.0, 33138.5, 37905.1, 42902.1, 46363.8, 48501.6, 54088.0, 56610.2] },
-                { region: '贵州省', type: 'west', data: [9173.1, 10541.0, 11792.4, 13605.4, 15353.2, 16769.3, 17860.4, 19458.6, 20010.4] },
-                { region: '云南省', type: 'west', data: [14041.7, 14960.0, 16369.0, 18486.0, 20880.6, 23223.8, 24555.7, 27161.6, 28556.1] },
-                { region: '西藏自治区', type: 'west', data: [939.7, 1043.0, 1173.0, 1349.0, 1548.4, 1697.8, 1902.7, 2080.2, 2150.2] },
-                { region: '陕西省', type: 'west', data: [17402.5, 17898.8, 19045.8, 21473.5, 23941.9, 25793.2, 26014.1, 30121.7, 32838.2] },
-                { region: '甘肃省', type: 'west', data: [6518.4, 6556.6, 6907.9, 7336.7, 8104.1, 8718.3, 8979.7, 10225.5, 11121.4] },
-                { region: '青海省', type: 'west', data: [1847.7, 2011.0, 2258.2, 2465.1, 2748.0, 2941.1, 3009.8, 3385.1, 3623.3] },
-                { region: '宁夏回族自治区', type: 'west', data: [2473.9, 2579.4, 2781.4, 3200.3, 3510.2, 3748.5, 3956.3, 4588.2, 5104.6] },
-                { region: '新疆维吾尔自治区', type: 'west', data: [9264.5, 9306.9, 9630.8, 11159.9, 12809.4, 13597.1, 13800.7, 16311.6, 18042.7] }
-            ];
-            
-           // 定义年份数组
-    const years = ['2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'];
-    
-    // 定义区域分组
-    const regionGroups = {
-        east: ['北京市', '天津市', '河北省', '上海市', '江苏省', '浙江省', '福建省', '山东省', '广东省', '海南省'],
-        central: ['山西省', '安徽省', '江西省', '河南省', '湖北省', '湖南省'],
-        west: ['内蒙古自治区', '广西壮族自治区', '重庆市', '四川省', '贵州省', '云南省', '西藏自治区', '陕西省', '甘肃省', '青海省', '宁夏回族自治区', '新疆维吾尔自治区'],
-        northeast: ['辽宁省', '吉林省', '黑龙江省']
-    };
-    
-    // 定义区域颜色
-    const regionColors = {
-        east: '#165DFF',
-        central: '#00B42A',
-        west: '#FF7D00',
-        northeast: '#F53F3F',
-        // 为每个地区类型设置颜色
-        'east': '#165DFF',
-        'central': '#00B42A',
-        'west': '#FF7D00',
-        'northeast': '#F53F3F'
-    };
-    
-    // 初始化地区GDP对比分析图表
-    initRegionComparisonCharts(gdpData, years, regionGroups, regionColors);
-    
-    // 地区GDP对比分析
-    function initRegionComparisonCharts(gdpData, years, regionGroups, regionColors) {
-        // 1. 地区GDP对比柱状图
-        const regionBarCtx = document.getElementById('regionBarChart').getContext('2d');
-        const regionBarChart = new Chart(regionBarCtx, {
-            type: 'bar',
-            data: {
-                labels: gdpData.slice(0, 10).map(item => item.region),
-                datasets: [{
-                    label: '2022年GDP (亿元)',
-                    data: gdpData.slice(0, 10).map(item => item.data[8]),
-                    backgroundColor: gdpData.slice(0, 10).map(item => regionColors[item.type]),
-                    borderWidth: 0,
-                    borderRadius: 6,
-                    barPercentage: 0.7,
-                }]
+        // 定义 GDP 数据
+        const data = [
+            { "地区": "北京市", "2022": 41540.9, "2021": 41045.6, "2020": 35943.3, "2019": 35445.1, "2018": 33106.0, "2017": 29883.0, "2016": 27041.2, "2015": 24779.1, "2014": 22926.0 },
+            { "地区": "天津市", "2022": 16132.2, "2021": 15685.1, "2020": 14008.0, "2019": 14055.5, "2018": 13362.9, "2017": 12450.6, "2016": 11477.2, "2015": 10879.5, "2014": 10640.6 },
+            { "地区": "河北省", "2022": 41988.0, "2021": 40397.1, "2020": 36013.8, "2019": 34978.6, "2018": 32494.6, "2017": 30640.8, "2016": 28474.1, "2015": 26398.4, "2014": 25208.9 },
+            { "地区": "山西省", "2022": 25583.9, "2021": 22870.4, "2020": 17835.6, "2019": 16961.6, "2018": 15958.1, "2017": 14484.3, "2016": 11946.4, "2015": 11836.4, "2014": 12094.7 },
+            { "地区": "内蒙古自治区", "2022": 23388.9, "2021": 21166.0, "2020": 17258.0, "2019": 17212.5, "2018": 16140.8, "2017": 14898.1, "2016": 13789.3, "2015": 12949.0, "2014": 12158.2 },
+            { "地区": "辽宁省", "2022": 28826.1, "2021": 27569.5, "2020": 25011.4, "2019": 24855.3, "2018": 23510.5, "2017": 21693.0, "2016": 20392.5, "2015": 20210.3, "2014": 20025.7 },
+            { "地区": "吉林省", "2022": 12818.1, "2021": 13163.8, "2020": 12256.0, "2019": 11726.8, "2018": 11253.8, "2017": 10922.0, "2016": 10427.0, "2015": 10018.0, "2014": 9966.5 },
+            { "地区": "黑龙江省", "2022": 15831.5, "2021": 14858.2, "2020": 13633.4, "2019": 13544.4, "2018": 12846.5, "2017": 12313.0, "2016": 11895.0, "2015": 11690.0, "2014": 12170.8 },
+            { "地区": "上海市", "2022": 44809.1, "2021": 43653.2, "2020": 38963.3, "2019": 37987.6, "2018": 36011.8, "2017": 32925.0, "2016": 29887.0, "2015": 26887.0, "2014": 25269.8 },
+            { "地区": "江苏省", "2022": 122089.3, "2021": 117392.4, "2020": 102807.7, "2019": 98656.8, "2018": 93207.6, "2017": 85869.8, "2016": 77350.9, "2015": 71255.9, "2014": 64830.5 },
+            { "地区": "浙江省", "2022": 78060.6, "2021": 74040.8, "2020": 64689.1, "2019": 62462.0, "2018": 58002.8, "2017": 52403.1, "2016": 47254.0, "2015": 43507.7, "2014": 40023.5 },
+            { "地区": "安徽省", "2022": 44607.7, "2021": 42565.2, "2020": 38061.5, "2019": 36845.5, "2018": 34010.9, "2017": 29676.2, "2016": 26307.7, "2015": 23831.2, "2014": 22519.7 },
+            { "地区": "福建省", "2022": 51765.1, "2021": 49566.1, "2020": 43608.6, "2019": 42326.6, "2018": 38687.8, "2017": 33842.4, "2016": 29609.4, "2015": 26819.5, "2014": 24942.1 },
+            { "地区": "江西省", "2022": 31213.8, "2021": 29827.8, "2020": 25782.0, "2019": 24667.3, "2018": 22716.5, "2017": 20210.8, "2016": 18388.6, "2015": 16780.9, "2014": 15667.8 },
+            { "地区": "山东省", "2022": 87576.9, "2021": 82875.2, "2020": 72798.2, "2019": 70540.5, "2018": 66648.9, "2017": 63012.1, "2016": 58762.5, "2015": 55288.8, "2014": 50774.8 },
+            { "地区": "河南省", "2022": 58220.1, "2021": 58071.4, "2020": 54259.4, "2019": 53717.8, "2018": 49935.9, "2017": 44824.9, "2016": 40249.3, "2015": 37084.1, "2014": 34574.8 },
+            { "地区": "湖北省", "2022": 52741.7, "2021": 50091.2, "2020": 43004.5, "2019": 45429.0, "2018": 42022.0, "2017": 37235.0, "2016": 33353.0, "2015": 30344.0, "2014": 28242.1 },
+            { "地区": "湖南省", "2022": 47558.6, "2021": 45713.5, "2020": 41542.6, "2019": 39894.1, "2018": 36329.7, "2017": 33828.1, "2016": 30853.5, "2015": 28538.6, "2014": 25881.3 },
+            { "地区": "广东省", "2022": 129513.6, "2021": 124719.5, "2020": 111151.6, "2019": 107986.9, "2018": 99945.2, "2017": 91648.7, "2016": 82163.2, "2015": 74732.4, "2014": 68173.0 },
+            { "地区": "广西壮族自治区", "2022": 26186.1, "2021": 25209.1, "2020": 22120.9, "2019": 21237.1, "2018": 19627.8, "2017": 17790.7, "2016": 16116.6, "2015": 14797.8, "2014": 13587.8 },
+            { "地区": "海南省", "2022": 6889.6, "2021": 6504.1, "2020": 5566.2, "2019": 5330.8, "2018": 4910.7, "2017": 4497.5, "2016": 4090.2, "2015": 3734.2, "2014": 3449.0 },
+            { "地区": "重庆市", "2022": 28576.1, "2021": 28077.3, "2020": 25041.4, "2019": 23605.8, "2018": 21588.8, "2017": 20066.3, "2016": 18023.0, "2015": 16040.5, "2014": 14623.8 },
+            { "地区": "四川省", "2022": 56610.2, "2021": 54088.0, "2020": 48501.6, "2019": 46363.8, "2018": 42902.1, "2017": 37905.1, "2016": 33138.5, "2015": 30342.0, "2014": 28891.3 },
+            { "地区": "贵州省", "2022": 20010.4, "2021": 19458.6, "2020": 17860.4, "2019": 16769.3, "2018": 15353.2, "2017": 13605.4, "2016": 11792.4, "2015": 10541.0, "2014": 9173.1 },
+            { "地区": "云南省", "2022": 28556.1, "2021": 27161.6, "2020": 24555.7, "2019": 23223.8, "2018": 20880.6, "2017": 18486.0, "2016": 16369.0, "2015": 14960.0, "2014": 14041.7 },
+            { "地区": "西藏自治区", "2022": 2150.2, "2021": 2080.2, "2020": 1902.7, "2019": 1697.8, "2018": 1548.4, "2017": 1349.0, "2016": 1173.0, "2015": 1043.0, "2014": 939.7 },
+            { "地区": "陕西省", "2022": 32838.2, "2021": 30121.7, "2020": 26014.1, "2019": 25793.2, "2018": 23941.9, "2017": 21473.5, "2016": 19045.8, "2015": 17898.8, "2014": 17402.5 },
+            { "地区": "甘肃省", "2022": 11121.4, "2021": 10225.5, "2020": 8979.7, "2019": 8718.3, "2018": 8104.1, "2017": 7336.7, "2016": 6907.9, "2015": 6556.6, "2014": 6518.4 },
+            { "地区": "青海省", "2022": 3623.3, "2021": 3385.1, "2020": 3009.8, "2019": 2941.1, "2018": 2748.0, "2017": 2465.1, "2016": 2258.2, "2015": 2011.0, "2014": 1847.7 },
+            { "地区": "宁夏回族自治区", "2022": 5104.6, "2021": 4588.2, "2020": 3956.3, "2019": 3748.5, "2018": 3510.2, "2017": 3200.3, "2016": 2781.4, "2015": 2579.4, "2014": 2473.9 },
+            { "地区": "新疆维吾尔自治区", "2022": 18042.7, "2021": 16311.6, "2020": 13800.7, "2019": 13597.1, "2018": 12809.4, "2017": 11159.9, "2016": 9630.8, "2015": 9306.9, "2014": 9264.5 }
+        ];
+
+        // 提取地区和 2022 年 GDP 数据
+        const regions = [];
+        const gdp2022 = [];
+        data.forEach(item => {
+            regions.push(item['地区']);
+            gdp2022.push(item['2022']);
+        });
+
+        // 初始化柱状图
+        const barChart = echarts.init(document.getElementById('barChart'));
+        const barOption = {
+            title: {
+                text: '2022 年各地区 GDP'
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                        padding: 12,
-                        titleFont: {
-                            size: 14,
-                            weight: 'bold'
-                        },
-                        bodyFont: {
-                            size: 13
-                        },
-                        callbacks: {
-                            label: function(context) {
-                                return `GDP: ${context.raw.toLocaleString()} 亿元`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return value >= 10000 ? value / 10000 + '万' : value;
-                            }
-                        }
-                    }
-                },
-                animations: {
-                    y: {
-                        duration: 1000,
-                        easing: 'easeOutQuart'
-                    }
-                }
-            }
-        });
-        
-        // 切换显示前10名和全部地区按钮
-        document.getElementById('top10Btn').addEventListener('click', function() {
-            regionBarChart.data.labels = gdpData.slice(0, 10).map(item => item.region);
-            regionBarChart.data.datasets[0].data = gdpData.slice(0, 10).map(item => item.data[8]);
-            regionBarChart.data.datasets[0].backgroundColor = gdpData.slice(0, 10).map(item => regionColors[item.type]);
-            regionBarChart.update();
-            
-            this.classList.add('bg-primary', 'text-white');
-            this.classList.remove('bg-gray-200', 'text-neutral');
-            document.getElementById('allBtn').classList.add('bg-gray-200', 'text-neutral');
-            document.getElementById('allBtn').classList.remove('bg-primary', 'text-white');
-        });
-        
-        document.getElementById('allBtn').addEventListener('click', function() {
-            regionBarChart.data.labels = gdpData.map(item => item.region);
-            regionBarChart.data.datasets[0].data = gdpData.map(item => item.data[8]);
-            regionBarChart.data.datasets[0].backgroundColor = gdpData.map(item => regionColors[item.type]);
-            regionBarChart.update();
-            
-            this.classList.add('bg-primary', 'text-white');
-            this.classList.remove('bg-gray-200', 'text-neutral');
-            document.getElementById('top10Btn').classList.add('bg-gray-200', 'text-neutral');
-            document.getElementById('top10Btn').classList.remove('bg-primary', 'text-white');
-        });
-        
-        // 2. 四大区域GDP占比饼图
-        const regionalPieCtx = document.getElementById('regionalPieChart').getContext('2d');
-        const regionalPieChart = new Chart(regionalPieCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['东部地区', '中部地区', '西部地区', '东北地区'],
-                datasets: [{
-                    data: [
-                        calculateRegionalTotal(gdpData, regionGroups.east, 1)[0],
-                        calculateRegionalTotal(gdpData, regionGroups.central, 1)[0],
-                        calculateRegionalTotal(gdpData, regionGroups.west, 1)[0],
-                        calculateRegionalTotal(gdpData, regionGroups.northeast, 1)[0]
-                    ],
-                    backgroundColor: [
-                        regionColors.east,
-                        regionColors.central,
-                        regionColors.west,
-                        regionColors.northeast
-                    ],
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
+            tooltip: {},
+            xAxis: {
+                data: regions
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true,
-                            pointStyle: 'circle'
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                        padding: 12,
-                        titleFont: {
-                            size: 14,
-                            weight: 'bold'
-                        },
-                        bodyFont: {
-                            size: 13
-                        },
-                        callbacks: {
-                            label: function(context) {
-                                const value = context.raw;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return `${context.label}: ${value.toLocaleString()} 亿元 (${percentage}%)`;
-                            }
-                        }
-                    }
-                },
-                cutout: '65%',
-                animations: {
-                    animateRotate: true,
-                    animateScale: true
-                }
-            }
+            yAxis: {},
+            series: [{
+                name: 'GDP',
+                type: 'bar',
+                data: gdp2022
+            }]
+        };
+        barChart.setOption(barOption);
+
+        // 选择部分地区
+        const selectedRegions = ['北京市', '上海市', '广东省', '江苏省'];
+        const years = ['2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'];
+        const lineSeries = [];
+        selectedRegions.forEach(region => {
+            const regionData = data.find(item => item['地区'] === region);
+            const values = years.map(year => regionData[year]);
+            lineSeries.push({
+                name: region,
+                type: 'line',
+                data: values
+            });
         });
-        
-        // 3. 人均GDP对比柱状图
-        const perCapitaCtx = document.getElementById('perCapitaChart').getContext('2d');
-        const perCapitaChart = new Chart(perCapitaCtx, {
-            type: 'bar',
-            data: {
-                labels: [
-                    '北京市', '上海市', '江苏省', '浙江省', '福建省', 
-                    '天津市', '广东省', '内蒙古自治区', '山东省', '重庆市'
-                ],
-                datasets: [{
-                    label: '2022年人均GDP (万元)',
-                    data: [19.0, 18.0, 14.4, 11.8, 12.6, 11.8, 10.1, 9.6, 8.8, 9.0],
-                    backgroundColor: [
-                        '#165DFF', '#165DFF', '#165DFF', '#165DFF', '#165DFF',
-                        '#165DFF', '#165DFF', '#00B42A', '#165DFF', '#00B42A'
-                    ],
-                    borderWidth: 0,
-                    borderRadius: 6,
-                    barPercentage: 0.7,
-                }]
+
+        // 初始化折线图
+        const lineChart = echarts.init(document.getElementById('lineChart'));
+        const lineOption = {
+            title: {
+                text: '部分地区多年 GDP 变化'
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                        padding: 12,
-                        titleFont: {
-                            size: 14,
-                            weight: 'bold'
-                        },
-                        bodyFont: {
-                            size: 13
-                        },
-                        callbacks: {
-                            label: function(context) {
-                                return `人均GDP: ${context.raw} 万元`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return value;
-                            }
-                        }
-                    }
-                },
-                animations: {
-                    y: {
-                        duration: 1000,
-                        easing: 'easeOutQuart'
-                    }
-                }
-            }
-        });
-        
-        // 辅助函数：计算区域总GDP
-        function calculateRegionalTotal(data, regions, yearCount) {
-            const result = Array(yearCount).fill(0);
-            for (const region of regions) {
-                const regionData = data.find(item => item.region === region);
-                if (regionData) {
-                    for (let i = 0; i < yearCount; i++) {
-                        result[i] += regionData.data[i];
-                    }
-                }
-            }
-            return result;
-        }
-    }
-});
-   
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: selectedRegions
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: years
+            },
+            yAxis: {},
+            series: lineSeries
+        };
+        lineChart.setOption(lineOption);
+    </script>
+</body>
+
+</html>
