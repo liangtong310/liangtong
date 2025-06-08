@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2024年中国极端高温事件图表</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#EF4444', // 红色表示高温
+            secondary: '#F97316', // 橙色表示次高温
+            accent: '#7C2D12', // 深棕色表示极端高温
+            neutral: '#6B7280',
+            'neutral-light': '#F3F4F6',
+            'neutral-dark': '#1F2937'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+  <!-- 导航栏 -->
+  <nav class="sticky top-0 z-50 bg-white shadow-md">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <i class="fa fa-thermometer-full text-primary text-2xl"></i>
+        <h1 class="text-xl font-bold text-neutral-dark">2024年中国极端高温事件图表</h1>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-8">
+    <!-- 事件概览图表 -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-neutral-dark mb-6">事件概览</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+          <h3 class="text-xl font-semibold text-neutral-dark mb-4 flex items-center">
+            <i class="fa fa-bar-chart text-secondary mr-2"></i> 高温日数分布
+          </h3>
+          <div class="w-full h-64">
+            <canvas id="heatDaysDistribution"></canvas>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+          <h3 class="text-xl font-semibold text-neutral-dark mb-4 flex items-center">
+            <i class="fa fa-area-chart text-accent mr-2"></i> 逐日最高气温
+          </h3>
+          <div class="w-full h-64">
+            <canvas id="dailyMaxTemperature"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 历史对比图表 -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-neutral-dark mb-6">历史对比</h2>
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h3 class="text-xl font-semibold text-neutral-dark mb-4 flex items-center">
+          <i class="fa fa-line-chart text-primary mr-2"></i> 历年极端高温事件强度对比
+        </h3>
+        <div class="w-full h-72">
+          <canvas id="historicalComparison"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- 区域特征图表 -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-neutral-dark mb-6">区域特征</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+          <h3 class="text-xl font-semibold text-neutral-dark mb-4 flex items-center">
+            <i class="fa fa-bar-chart text-secondary mr-2"></i> 各省高温日数排名
+          </h3>
+          <div class="w-full h-72">
+            <canvas id="provinceHeatDays"></canvas>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+          <h3 class="text-xl font-semibold text-neutral-dark mb-4 flex items-center">
+            <i class="fa fa-line-chart text-accent mr-2"></i> 区域高温过程演变
+          </h3>
+          <div class="w-full h-72">
+            <canvas id="regionalTrend"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 影响评估图表 -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-neutral-dark mb-6">影响评估</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+          <h3 class="text-xl font-semibold text-neutral-dark mb-4 flex items-center">
+            <i class="fa fa-bolt text-primary mr-2"></i> 电力负荷与能源消耗
+          </h3>
+          <div class="w-full h-64">
+            <canvas id="powerConsumption"></canvas>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+          <h3 class="text-xl font-semibold text-neutral-dark mb-4 flex items-center">
+            <i class="fa fa-medkit text-secondary mr-2"></i> 健康影响
+          </h3>
+          <div class="w-full h-64">
+            <canvas id="healthImpact"></canvas>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+          <h3 class="text-xl font-semibold text-neutral-dark mb-4 flex items-center">
+            <i class="fa fa-tint text-accent mr-2"></i> 水资源与农业
+          </h3>
+          <div class="w-full h-64">
+            <canvas id="waterAgriculture"></canvas>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+          <h3 class="text-xl font-semibold text-neutral-dark mb-4 flex items-center">
+            <i class="fa fa-industry text-primary mr-2"></i> 工业生产
+          </h3>
+          <div class="w-full h-64">
+            <canvas id="industrialImpact"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 未来展望图表 -->
+    <section>
+      <h2 class="text-2xl font-bold text-neutral-dark mb-6">未来展望</h2>
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-xl font-semibold text-neutral-dark mb-4 flex items-center">
+          <i class="fa fa-area-chart text-primary mr-2"></i> 未来高温趋势预测
+        </h3>
+        <div class="w-full h-64">
+          <canvas id="futureTrend"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-neutral-dark text-white py-8 mt-12">
+    <div class="container mx-auto px-4 text-center">
+      <p>&copy; 2024 气候数据分析团队. 保留所有权利.</p>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // 图表初始化
+    window.addEventListener('DOMContentLoaded', () => {
+      // 高温日数分布
+      const heatDaysDistributionCtx = document.getElementById('heatDaysDistribution').getContext('2d');
+      new Chart(heatDaysDistributionCtx, {
+        type: 'histogram',
+        data: {
+          datasets: [{
+            data: [5, 10, 15, 20, 23, 18, 12, 8, 5, 3],
+            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+            borderColor: 'rgb(239, 68, 68)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: '高温日数 (天)'
+              },
+              ticks: {
+                stepSize: 5
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: '站点数量'
+              }
+            }
+          }
+        }
+      });
+      
+      // 逐日最高气温
+      const dailyMaxTemperatureCtx = document.getElementById('dailyMaxTemperature').getContext('2d');
+      new Chart(dailyMaxTemperatureCtx, {
+        type: 'line',
+        data: {
+          labels: ['8月1日', '8月2日', '8月3日', '8月4日', '8月5日', '8月6日', '8月7日', '8月8日', '8月9日', '8月10日', '8月11日', '8月12日', '8月13日', '8月14日', '8月15日', '8月16日', '8月17日', '8月18日', '8月19日', '8月20日', '8月21日', '8月22日', '8月23日'],
+          datasets: [{
+            label: '全国平均最高气温 (℃)',
+            data: [35.2, 35.8, 36.5, 37.1, 37.5, 37.8, 38.2, 38.5, 38.7, 38.9, 39.1, 39.3, 39.2, 39.0, 38.7, 38.3, 37.9, 37.5, 37.2, 36.8, 36.5, 36.2, 35.8],
+            borderColor: '#EF4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: '温度 (℃)'
+              }
+            }
+          }
+        }
+      });
+      
+      // 历年极端高温事件强度对比
+      const historicalComparisonCtx = document.getElementById('historicalComparison').getContext('2d');
+      new Chart(historicalComparisonCtx, {
+        type: 'bar',
+        data: {
+          labels: ['2003', '2010', '2013', '2017', '2022', '2024'],
+          datasets: [{
+            label: '高温事件强度指数',
+            data: [78, 82, 95, 88, 90, 100],
+            backgroundColor: [
+              'rgba(239, 68, 68, 0.3)',
+              'rgba(239, 68, 68, 0.4)',
+              'rgba(239, 68, 68, 0.6)',
+              'rgba(239, 68, 68, 0.5)',
+              'rgba(239, 68, 68, 0.7)',
+              'rgba(239, 68, 68, 1)'
+            ],
+            borderColor: 'rgb(239, 68, 68)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: '强度指数'
+              }
+            }
+          }
+        }
+      });
+      
+      // 各省高温日数排名
+      const provinceHeatDaysCtx = document.getElementById('provinceHeatDays').getContext('2d');
+      new Chart(provinceHeatDaysCtx, {
+        type: 'bar',
+        data: {
+          labels: ['新疆', '河南', '山东', '河北', '陕西', '安徽', '江苏', '湖北', '湖南', '江西'],
+          datasets: [{
+            label: '高温日数 (天)',
+            data: [23, 20, 18, 17, 16, 15, 14, 13, 12, 11],
+            backgroundColor: [
+              'rgba(189, 0, 38, 0.8)',
+              'rgba(222, 45, 38, 0.8)',
+              'rgba(239, 59, 44, 0.8)',
+              'rgba(247, 104, 91, 0.8)',
+              'rgba(252, 146, 114, 0.8)',
+              'rgba(252, 187, 161, 0.8)',
+              'rgba(254, 224, 210, 0.8)',
+              'rgba(255, 245, 240, 0.8)',
+              'rgba(255, 245, 240, 0.6)',
+              'rgba(255, 245, 240, 0.4)'
+            ],
+            borderColor: 'rgba(239, 68, 68, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: '高温日数 (天)'
+              }
+            }
+          }
+        }
+      });
+      
+      // 区域高温过程演变
+      const regionalTrendCtx = document.getElementById('regionalTrend').getContext('2d');
+      new Chart(regionalTrendCtx, {
+        type: 'line',
+        data: {
+          labels: ['8月1日', '8月5日', '8月10日', '8月15日', '8月20日', '8月23日'],
+          datasets: [
+            {
+              label: '新疆',
+              data: [38.5, 40.2, 42.5, 43.8, 42.1, 40.5],
+              borderColor: '#7C2D12',
+              backgroundColor: 'rgba(124, 45, 18, 0.1)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: '华北黄淮',
+              data: [35.2, 36.8, 38.7, 39.5, 38.2, 36.5],
+              borderColor: '#F97316',
+              backgroundColor: 'rgba(249, 115, 22, 0.1)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: '江南江淮',
+              data: [34.5, 35.8, 37.2, 37.8, 37.0, 35.5],
+              borderColor: '#EF4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              tension: 0.3,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: '平均最高温度 (℃)'
+              }
+            }
+          }
+        }
+      });
+      
+      // 电力负荷与能源消耗
+      const powerConsumptionCtx = document.getElementById('powerConsumption').getContext('2d');
+      new Chart(powerConsumptionCtx, {
+        type: 'line',
+        data: {
+          labels: ['7月20日', '7月25日', '8月1日', '8月5日', '8月10日', '8月15日', '8月20日', '8月25日'],
+          datasets: [
+            {
+              label: '全国日发电量 (亿千瓦时)',
+              data: [270, 280, 290, 300, 305, 310, 308, 300],
+              borderColor: '#EF4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: '同比增长 (%)',
+              data: [5, 6, 8, 10, 12, 11, 9, 7],
+              borderColor: '#7C2D12',
+              backgroundColor: 'transparent',
+              borderDash: [5, 5],
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: '发电量 (亿千瓦时) / 同比增长 (%)'
+              },
+              grid: {
+                drawBorder: false
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+            }
+          }
+        }
+      });
+      
+      // 健康影响
+      const healthImpactCtx = document.getElementById('healthImpact').getContext('2d');
+      new Chart(healthImpactCtx, {
+        type: 'line',
+        data: {
+          labels: ['7月20日', '7月25日', '8月1日', '8月5日', '8月10日', '8月15日', '8月20日', '8月25日'],
+          datasets: [
+            {
+              label: '中暑急诊病例 (例)',
+              data: [250, 320, 450, 680, 750, 820, 780, 650],
+              borderColor: '#F97316',
+              backgroundColor: 'rgba(249, 115, 22, 0.1)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: '心脑血管急诊病例 (例)',
+              data: [1200, 1350, 1480, 1620, 1750, 1800, 1720, 1600],
+              borderColor: '#7C2D12',
+              backgroundColor: 'rgba(124, 45, 18, 0.1)',
+              tension: 0.3,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: '病例数 (例)'
+              }
+            }
+          }
+        }
+      });
+      
+      // 水资源与农业
+      const waterAgricultureCtx = document.getElementById('waterAgriculture').getContext('2d');
+      new Chart(waterAgricultureCtx, {
+        type: 'bar',
+        data: {
+          labels: ['7月20日', '7月25日', '8月1日', '8月5日', '8月10日', '8月15日', '8月20日', '8月25日'],
+          datasets: [
+            {
+              label: '受旱面积 (万亩)',
+              data: [120, 180, 250, 350, 500, 680, 860, 820],
+              backgroundColor: 'rgba(239, 68, 68, 0.7)',
+              borderColor: 'rgb(239, 68, 68)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: '受旱面积 (万亩)'
+              }
+            }
+          }
+        }
+      });
+      
+      // 工业生产
+      const industrialImpactCtx = document.getElementById('industrialImpact').getContext('2d');
+      new Chart(industrialImpactCtx, {
+        type: 'line',
+        data: {
+          labels: ['7月20日', '7月25日', '8月1日', '8月5日', '8月10日', '8月15日', '8月20日', '8月25日'],
+          datasets: [
+            {
+              label: '户外作业受限率 (%)',
+              data: [5, 12, 25, 38, 45, 42, 35, 20],
+              borderColor: '#F97316',
+              backgroundColor: 'rgba(249, 115, 22, 0.1)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: '生产效率下降 (%)',
+              data: [2, 5, 8, 12, 15, 14, 10, 7],
+              borderColor: '#7C2D12',
+              backgroundColor: 'transparent',
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: '百分比 (%)'
+              }
+            }
+          }
+        }
+      });
+      
+      // 未来高温趋势预测
+      const futureTrendCtx = document.getElementById('futureTrend').getContext('2d');
+      new Chart(futureTrendCtx, {
+        type: 'line',
+        data: {
+          labels: ['2020', '2022', '2024', '2026', '2028', '2030'],
+          datasets: [
+            {
+              label: '极端高温事件频率 (次/年)',
+              data: [0.5, 0.7, 1, 1.3, 1.8, 2.5],
+              borderColor: '#EF4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: '平均持续时间 (天)',
+              data: [12, 15, 23, 26, 28, 30],
+              borderColor: '#7C2D12',
+              backgroundColor: 'transparent',
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: '频率 (次/年) / 持续时间 (天)'
+              }
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+  
