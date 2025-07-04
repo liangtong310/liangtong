@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云肩之美 - 中国传统服饰艺术</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 配置Tailwind自定义颜色和字体 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            light: '#d4af37',
+                            DEFAULT: '#b8860b',
+                            dark: '#856307'
+                        },
+                        cloud: {
+                            light: '#f8f5f0',
+                            DEFAULT: '#e8e2d6',
+                            dark: '#d8cbb7'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Noto Serif SC', 'serif']
+                    },
+                    backgroundImage: {
+                        'cloud-pattern': "url('img/底图.jpg')",
+                        'cloud-texture': "url('https://picsum.photos/id/380/1200/800')"
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            }
+            .text-shadow-gold {
+                text-shadow: 0 0 8px rgba(184, 134, 11, 0.8);
+            }
+            .bg-blur {
+                backdrop-filter: blur(8px);
+            }
+            .gold-gradient {
+                background: linear-gradient(135deg, #856307 0%, #d4af37 50%, #856307 100%);
+            }
+        }
+    </style>
+</head>
+<body class="bg-black bg-cloud-pattern bg-cover bg-fixed bg-center min-h-screen text-cloud-light overflow-x-hidden">
+    <!-- 背景遮罩 -->
+    <div class="fixed inset-0 bg-black/70 z-0"></div>
+    
+    <!-- 顶部导航 -->
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center bg-black/60 bg-blur border-b border-gold/30">
+            <a href="#" class="flex items-center space-x-2">
+                <i class="fa fa-pagelines text-gold text-2xl"></i>
+                <span class="text-xl font-serif font-bold text-gold">云肩之美</span>
+            </a>
+            
+            <!-- 桌面导航 -->
+            <nav class="hidden md:flex space-x-8">
+                <a href="#home" class="text-cloud-light hover:text-gold transition-colors duration-300 font-medium">首页</a>
+                <a href="#posters" class="text-cloud-light hover:text-gold transition-colors duration-300 font-medium">动态海报</a>
+                <a href="#dressup" class="text-cloud-light hover:text-gold transition-colors duration-300 font-medium">AI换装</a>
+            </nav>
+            
+            <!-- 移动端菜单按钮 -->
+            <button class="md:hidden text-cloud-light text-2xl" id="menu-toggle">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- 移动端导航菜单 -->
+        <div class="md:hidden hidden bg-black/90 bg-blur border-b border-gold/30" id="mobile-menu">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-4">
+                <a href="#home" class="text-cloud-light hover:text-gold transition-colors duration-300 font-medium py-2 border-b border-gold/10">首页</a>
+                <a href="#posters" class="text-cloud-light hover:text-gold transition-colors duration-300 font-medium py-2 border-b border-gold/10">动态海报</a>
+                <a href="#dressup" class="text-cloud-light hover:text-gold transition-colors duration-300 font-medium py-2">AI换装</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="relative z-10">
+        <!-- 英雄区域 -->
+        <section id="home" class="min-h-screen flex items-center justify-center relative">
+            <div class="container mx-auto px-4 py-20 text-center">
+                <h1 class="text-[clamp(2.5rem,8vw,5rem)] font-serif font-bold text-cloud-light mb-6 text-shadow-gold">
+                    云肩 <span class="text-gold">华彩</span>
+                </h1>
+                <p class="text-[clamp(1rem,3vw,1.5rem)] text-cloud-light max-w-3xl mx-auto mb-10 text-shadow">
+                    中国传统服饰文化——云肩的历史与美学
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="#posters" class="px-8 py-3 bg-gold text-black font-bold rounded-md hover:bg-gold-dark transition-colors duration-300 transform hover:scale-105 shadow-lg">
+                        动态海报 <i class="fa fa-image ml-2"></i>
+                    </a>
+                    <a href="#dressup" class="px-8 py-3 bg-transparent border-2 border-gold text-gold font-bold rounded-md hover:bg-gold/10 transition-colors duration-300 transform hover:scale-105">
+                        AI换装 <i class="fa fa-scissors ml-2"></i>
+                    </a>
+                </div>
+                
+                <!-- 装饰元素：云肩图案 -->
+                <div class="absolute -bottom-20 left-0 right-0 h-40 bg-gradient-to-t from-black to-transparent"></div>
+                <div class="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-20 h-20 md:w-32 md:h-32 border-4 border-gold rounded-full flex items-center justify-center">
+                    <i class="fa fa-chevron-down text-gold text-2xl md:text-3xl animate-bounce"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- 动态海报区域 -->
+        <section id="posters" class="py-24 bg-black/50 relative">
+            <div class="container mx-auto px-4">
+                <h2 class="text-[clamp(1.8rem,5vw,3rem)] font-serif font-bold text-center text-gold mb-16 relative">
+                    动态海报
+                    <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gold"></div>
+                </h2>
+                
+                <div class="grid grid-cols-1 gap-16 items-center">
+                    <!-- 第一个动态海报 -->
+                    <div class="bg-black/60 p-4 rounded-lg border border-gold/30 shadow-xl transform transition-all duration-500 hover:shadow-gold/30 hover:shadow-2xl">
+                        <div class="aspect-video flex justify-center items-center cursor-pointer poster-container" data-video="video1">
+                            <video muted loop poster="img/图片三.jpg" class="w-full max-w-lg poster-video" id="video1">
+                                <source src="img/海报视频.mp4" type="video/mp4">
+                                您的浏览器不支持视频播放，请尝试更新浏览器。
+                            </video>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gold mb-2">动态海报</h3>
+                            <p class="text-cloud-light">一张图，用数据可视化的方式，让你秒懂云肩   <span class="text-gold cursor-pointer play-text" data-video="video1">点击解锁动态海报</span></p>
+                        </div>
+                    </div>
+                    
+                    
+            
+                </div>
+            </div>
+        </section>
+
+        <!-- 换装区域 -->
+        <section id="dressup" class="py-24 bg-black/50 relative">
+            <div class="container mx-auto px-4">
+                <h2 class="text-[clamp(1.8rem,5vw,3rem)] font-serif font-bold text-center text-gold mb-16 relative">
+                    AI换装
+                    <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gold"></div>
+                </h2>
+			            <div class="bg-black/60 p-4 rounded-lg border border-gold/30 shadow-xl transform transition-all duration-500 hover:shadow-gold/30 hover:shadow-2xl">
+			                <div class="aspect-video flex justify-center items-center cursor-pointer poster-container" data-video="video2">
+			                    <video muted loop poster="img/封面.jpg" class="w-full max-w-lg poster-video" id="video2">
+			                        <source src="img/视频换装.mp4" type="video/mp4">
+			                        您的浏览器不支持视频播放，请尝试更新浏览器。
+			                    </video>
+			                </div>
+			                <div class="p-6">
+			                    <h3 class="text-xl font-bold text-gold mb-2">AI换装</h3>
+			                    <p class="text-cloud-light">用AI视频的方式，让云肩的历史脉络可视化   <span class="text-gold cursor-pointer play-text" data-video="video2">点击开启历史洄游</span></p>
+			                </div>
+			            </div>
+			        </div>
+			    </div>
+			</section>	
+    </main>
+
+   
+                        
+
+    <!-- 回到顶部按钮 -->
+    <button id="back-to-top" class="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-gold text-black flex items-center justify-center shadow-lg transform transition-all duration-300 opacity-0 translate-y-10 hover:bg-gold-dark">
+        <i class="fa fa-chevron-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script>
+        // 导航栏滚动效果
+        const navbar = document.getElementById('navbar');
+        const backToTopBtn = document.getElementById('back-to-top');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-black/90', 'shadow-lg');
+                navbar.classList.remove('bg-black/60');
+                
+                backToTopBtn.classList.remove('opacity-0', 'translate-y-10');
+                backToTopBtn.classList.add('opacity-100', 'translate-y-0');
+            } else {
+                navbar.classList.remove('bg-black/90', 'shadow-lg');
+                navbar.classList.add('bg-black/60');
+                
+                backToTopBtn.classList.add('opacity-0', 'translate-y-10');
+                backToTopBtn.classList.remove('opacity-100', 'translate-y-0');
+            }
+        });
+        
+        // 移动端菜单切换
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            menuToggle.innerHTML = mobileMenu.classList.contains('hidden') 
+                ? '<i class="fa fa-bars"></i>' 
+                : '<i class="fa fa-times"></i>';
+        });
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                // 关闭移动菜单
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                    menuToggle.innerHTML = '<i class="fa fa-bars"></i>';
+                }
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // 回到顶部
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 动态海报交互
+        document.querySelectorAll('.poster-container, .play-text').forEach(element => {
+            element.addEventListener('click', function() {
+                const videoId = this.getAttribute('data-video') || this.closest('.poster-container').getAttribute('data-video');
+                const video = document.getElementById(videoId);
+                
+                if (video.paused) {
+                    video.play();
+                    this.classList.add('playing');
+                } else {
+                    video.pause();
+                    this.classList.remove('playing');
+                }
+            });
+        });
+        
+        // 隐藏视频控件
+        document.querySelectorAll('.poster-video').forEach(video => {
+            video.controls = false;
+        });
+    </script>
+</body>
+</html>    
