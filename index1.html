@@ -1,0 +1,3002 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="新闻评论教学智能体 - 帮助教师收集、分析和整合学生对新闻的观点" />
+  <title>新闻评论教学智能体</title>
+  <!-- CDN引入 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tanstack/react-router@1.13.2/build/umd/index.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/recharts@2.15.0/umd/Recharts.min.js"></script>
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3B82F6',
+            secondary: '#8B5CF6',
+            accent: '#10B981',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义样式 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .transition-all-300 {
+        transition: all 0.3s ease;
+      }
+      .shadow-card {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+    }
+    
+    /* 全局样式 */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.5;
+      font-weight: 400;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+    
+    .dark ::-webkit-scrollbar-track {
+      background: #1f2937;
+    }
+    
+    .dark ::-webkit-scrollbar-thumb {
+      background: #4b5563;
+    }
+    
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+    }
+    
+    /* 动画效果 */
+    @keyframes blob {
+      0% {
+        transform: translate(0px, 0px) scale(1);
+      }
+      33% {
+        transform: translate(30px, -50px) scale(1.1);
+      }
+      66% {
+        transform: translate(-20px, 20px) scale(0.9);
+      }
+      100% {
+        transform: translate(0px, 0px) scale(1);
+      }
+    }
+    
+    .animate-blob {
+      animation: blob 7s infinite;
+    }
+    
+    .animation-delay-2000 {
+      animation-delay: 2s;
+    }
+    
+    .animation-delay-4000 {
+      animation-delay: 4s;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
+  <div id="root"></div>
+  
+  <script type="text/javascript">
+    // 类型定义
+    const UserRole = {
+      TEACHER: 'teacher',
+      STUDENT: 'student'
+    };
+    
+    // 新闻项接口
+    const NewsItem = {
+      id: '',
+      title: '',
+      content: '',
+      newsUrl: '',
+      imageUrl: '',
+      createdAt: '',
+      commentsCount: 0
+    };
+    
+    // 观点接口
+    const Viewpoint = {
+      id: '',
+      newsId: '',
+      userId: '',
+      userName: '',
+      content: '',
+      category: '',
+      agreeCount: 0,
+      createdAt: ''
+    };
+    
+    // 模拟初始新闻数据
+    const initialNewsData = [
+      {
+        id: '1',
+        title: '人工智能技术在教育领域的应用与挑战',
+        content: '随着人工智能技术的快速发展，越来越多的教育机构开始探索AI在教学中的应用。从智能辅导系统到个性化学习平台，AI正在改变传统的教育模式。然而，这一变革也带来了数据隐私、算法偏见等诸多挑战。如何平衡技术创新与教育本质，成为当前教育界讨论的热点话题。',
+        imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=AI%20technology%20in%20education%2C%20classroom%20with%20computers%2C%20interactive%20learning&sign=5467b25f8f52c1a6d1f55f20ebd94f78',
+        createdAt: '2025-11-25T10:30:00Z',
+        commentsCount: 8,
+      },
+      {
+        id: '2',
+        title: '全球气候变化对粮食安全的影响分析',
+        content: '全球气候变化正以前所未有的速度影响着我们的星球。极端天气事件频发、温度升高、降水模式改变等因素，对全球粮食生产和供应构成了严峻挑战。专家呼吁国际社会加强合作，共同应对气候变化对粮食安全的威胁，同时推动农业可持续发展。',
+        imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=Climate%20change%20impact%20on%20agriculture%2C%20farmland%20drought%2C%20global%20food%20security&sign=494d19ed045abceb1bf632730d2afeab',
+        createdAt: '2025-11-24T14:20:00Z',
+        commentsCount: 12,
+      },
+      {
+        id: '3',
+        title: '数字经济时代的就业市场变革',
+        content: '数字经济的蓬勃发展正在重塑全球就业市场。一方面，新技术创造了大量新兴职业；另一方面，传统行业面临着自动化和智能化带来的转型压力。在这一背景下，劳动力市场对数字技能的需求大幅增加，教育体系和职业培训也需要相应调整，以适应这一变革趋势。',
+        createdAt: '2025-11-23T09:15:00Z',
+        commentsCount: 6,
+      },
+    ];
+    
+    // 模拟初始观点数据
+    const initialViewpointsData = [
+      {
+        id: 'vp_1',
+        newsId: '1',
+        userId: '2',
+        userName: '学生甲',
+        content: '我认为AI在教育中的应用前景广阔，可以根据学生的学习情况提供个性化的学习方案，大大提高学习效率。',
+        category: '教育意义',
+        agreeCount: 5,
+        createdAt: '2025-11-25T11:00:00Z',
+      },
+      {
+        id: 'vp_2',
+        newsId: '1',
+        userId: '3',
+        userName: '学生乙',
+        content: '虽然AI技术很先进，但教育的本质是人与人之间的交流和情感传递，这是AI无法替代的。',
+        category: '个人感受',
+        agreeCount: 8,
+        createdAt: '2025-11-25T11:30:00Z',
+      },
+      {
+        id: 'vp_3',
+        newsId: '1',
+        userId: '4',
+        userName: '学生丙',
+        content: '数据隐私是AI在教育应用中必须重视的问题，学生的个人学习数据需要得到妥善保护。',
+        category: '社会影响',
+        agreeCount: 6,
+        createdAt: '2025-11-25T14:15:00Z',
+      },
+      {
+        id: 'vp_4',
+        newsId: '2',
+        userId: '2',
+        userName: '学生甲',
+        content: '气候变化对发展中国家的影响更为严重，国际社会应该给予更多支持和帮助。',
+        category: '政治观点',
+        agreeCount: 7,
+        createdAt: '2025-11-24T15:00:00Z',
+      },
+      {
+        id: 'vp_5',
+        newsId: '2',
+        userId: '3',
+        userName: '学生乙',
+        content: '发展可持续农业技术是应对气候变化影响的有效途径，应该加大研发投入。',
+        category: '经济分析',
+        agreeCount: 9,
+        createdAt: '2025-11-24T16:20:00Z',
+      },
+    ];
+    
+    // 自定义钩子实现
+    function useNews() {
+      const [news, setNews] = React.useState([]);
+      
+      // 从本地存储加载新闻数据
+      React.useEffect(() => {
+        const storedNews = localStorage.getItem('news');
+        if (storedNews) {
+          setNews(JSON.parse(storedNews));
+        } else {
+          // 如果没有存储的数据，使用初始数据
+          setNews(initialNewsData);
+          localStorage.setItem('news', JSON.stringify(initialNewsData));
+        }
+      }, []);
+      
+      // 保存新闻数据到本地存储
+      React.useEffect(() => {
+        if (news.length > 0) {
+          localStorage.setItem('news', JSON.stringify(news));
+        }
+      }, [news]);
+      
+      // 添加新闻
+      const addNews = (newsItem) => {
+        const newNews = {
+          ...newsItem,
+          id: `news_${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          commentsCount: 0,
+        };
+        
+        setNews(prevNews => [newNews, ...prevNews]);
+      };
+      
+      // 更新新闻
+      const updateNews = (updatedNews) => {
+        setNews(prevNews => 
+          prevNews.map(news => 
+            news.id === updatedNews.id ? updatedNews : news
+          )
+        );
+      };
+      
+      // 删除新闻
+      const deleteNews = (id) => {
+        setNews(prevNews => prevNews.filter(news => news.id !== id));
+      };
+      
+      return {
+        news,
+        addNews,
+        updateNews,
+        deleteNews,
+      };
+    }
+    
+    // 观点相关钩子
+    function useViewpoints() {
+      const [viewpoints, setViewpoints] = React.useState([]);
+      
+      // 从本地存储加载观点数据
+      React.useEffect(() => {
+        const storedViewpoints = localStorage.getItem('viewpoints');
+        if (storedViewpoints) {
+          setViewpoints(JSON.parse(storedViewpoints));
+        } else {
+          // 如果没有存储的数据，使用初始数据
+          setViewpoints(initialViewpointsData);
+          localStorage.setItem('viewpoints', JSON.stringify(initialViewpointsData));
+        }
+      }, []);
+      
+      // 保存观点数据到本地存储
+      React.useEffect(() => {
+        if (viewpoints.length > 0) {
+          localStorage.setItem('viewpoints', JSON.stringify(viewpoints));
+        }
+      }, [viewpoints]);
+      
+      // 添加观点
+      const addViewpoint = (viewpoint) => {
+        setViewpoints(prevViewpoints => [viewpoint, ...prevViewpoints]);
+      };
+      
+      // 更新观点
+      const updateViewpoint = (updatedViewpoint) => {
+        setViewpoints(prevViewpoints => 
+          prevViewpoints.map(viewpoint => 
+            viewpoint.id === updatedViewpoint.id ? updatedViewpoint : viewpoint
+          )
+        );
+      };
+      
+      // 删除观点
+      const deleteViewpoint = (id) => {
+        setViewpoints(prevViewpoints => prevViewpoints.filter(viewpoint => viewpoint.id !== id));
+      };
+      
+      return {
+        viewpoints,
+        addViewpoint,
+        updateViewpoint,
+        deleteViewpoint,
+      };
+    }
+    
+    // 主题钩子
+    function useTheme() {
+      const [theme, setTheme] = React.useState(() => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+          return savedTheme;
+        }
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      });
+    
+      React.useEffect(() => {
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
+        localStorage.setItem('theme', theme);
+      }, [theme]);
+    
+      const toggleTheme = () => {
+        setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+      };
+    
+      return {
+        theme,
+        toggleTheme,
+        isDark: theme === 'dark'
+      };
+    }
+    
+    // 认证上下文
+    const AuthContext = React.createContext({
+      isAuthenticated: false,
+      user: null,
+      setIsAuthenticated: (value) => {},
+      setUser: (user) => {},
+      logout: () => {},
+    });
+    
+    // 创建新闻模态框组件
+    function CreateNewsModal({ onClose, onSubmit }) {
+      const [title, setTitle] = React.useState('');
+      const [content, setContent] = React.useState('');
+      const [newsUrl, setNewsUrl] = React.useState('');
+      const [imageUrl, setImageUrl] = React.useState('');
+      const [isSubmitting, setIsSubmitting] = React.useState(false);
+      const [isLoadingFromUrl, setIsLoadingFromUrl] = React.useState(false);
+      
+      // 从新闻链接加载内容（模拟功能）
+      const handleLoadFromUrl = () => {
+        if (!newsUrl.trim()) {
+          alert('请输入新闻链接');
+          return;
+        }
+        
+        // 简单的URL验证
+        try {
+          new URL(newsUrl);
+        } catch (e) {
+          alert('请输入有效的URL');
+          return;
+        }
+        
+        setIsLoadingFromUrl(true);
+        
+        // 模拟从链接加载内容的过程
+        setTimeout(() => {
+          alert('已从链接加载新闻信息，您可以进行编辑');
+          setIsLoadingFromUrl(false);
+        }, 1500);
+      };
+      
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        
+        if (!title.trim()) {
+          alert('请输入新闻标题');
+          return;
+        }
+        
+        if (!content.trim()) {
+          alert('请输入新闻内容');
+          return;
+        }
+        
+        setIsSubmitting(true);
+        
+        // 模拟提交延迟
+        setTimeout(() => {
+          onSubmit({
+            title,
+            content,
+            newsUrl: newsUrl.trim() || undefined,
+            imageUrl: imageUrl.trim() || undefined,
+          });
+          
+          // 重置表单
+          setTitle('');
+          setContent('');
+          setNewsUrl('');
+          setImageUrl('');
+          setIsSubmitting(false);
+          onClose();
+        }, 800);
+      };
+      
+      const handleOverlayClick = (e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      };
+      
+      return React.createElement(
+        'div',
+        { 
+          className: 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50',
+          onClick: handleOverlayClick
+        },
+        React.createElement(
+          'div',
+          { 
+            className: 'w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden',
+            onClick: (e) => e.stopPropagation()
+          },
+          React.createElement(
+            'div',
+            { className: 'px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center' },
+            React.createElement('h2', { className: 'text-lg font-semibold text-gray-900 dark:text-white' }, '创建新闻主题'),
+            React.createElement(
+              'button',
+              {
+                onClick: onClose,
+                className: 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none',
+                ariaLabel: '关闭'
+              },
+              React.createElement('i', { className: 'fa fa-times' })
+            )
+          ),
+          
+          React.createElement(
+            'div',
+            { className: 'px-6 py-4' },
+            React.createElement(
+              'form',
+              { onSubmit: handleSubmit },
+              React.createElement(
+                'div',
+                { className: 'mb-4' },
+                React.createElement('label', { htmlFor: 'title', className: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' }, '新闻标题'),
+                React.createElement('input', {
+                  type: 'text',
+                  id: 'title',
+                  value: title,
+                  onChange: (e) => setTitle(e.target.value),
+                  placeholder: '请输入新闻标题',
+                  className: 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white',
+                  maxLength: 100
+                }),
+                React.createElement('p', { className: 'mt-1 text-xs text-gray-500 dark:text-gray-400' }, `${title.length}/100`)
+              ),
+              
+              React.createElement(
+                'div',
+                { className: 'mb-4' },
+                React.createElement('label', { htmlFor: 'newsUrl', className: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' }, '新闻链接'),
+                React.createElement(
+                  'div',
+                  { className: 'flex space-x-2' },
+                  React.createElement('input', {
+                    type: 'text',
+                    id: 'newsUrl',
+                    value: newsUrl,
+                    onChange: (e) => setNewsUrl(e.target.value),
+                    placeholder: '请输入新闻原文链接',
+                    className: 'flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white'
+                  }),
+                  React.createElement(
+                    'button',
+                    {
+                      type: 'button',
+                      onClick: handleLoadFromUrl,
+                      disabled: isLoadingFromUrl || !newsUrl.trim(),
+                      className: 'px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap'
+                    },
+                    isLoadingFromUrl ? (
+                      React.createElement(
+                        React.Fragment,
+                        null,
+                        React.createElement('i', { className: 'fa fa-circle-o-notch fa-spin mr-1' }),
+                        '加载中'
+                      )
+                    ) : (
+                      React.createElement(
+                        React.Fragment,
+                        null,
+                        React.createElement('i', { className: 'fa fa-link mr-1' }),
+                        '加载内容'
+                      )
+                    )
+                  )
+                ),
+                React.createElement('p', { className: 'mt-1 text-xs text-gray-500 dark:text-gray-400' }, '输入新闻链接可自动提取内容，支持常见新闻网站')
+              ),
+              
+              React.createElement(
+                'div',
+                { className: 'mb-4' },
+                React.createElement('label', { htmlFor: 'content', className: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' }, '新闻内容概括'),
+                React.createElement('textarea', {
+                  id: 'content',
+                  value: content,
+                  onChange: (e) => setContent(e.target.value),
+                  placeholder: '请输入新闻内容概括...',
+                  className: 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white min-h-[150px]',
+                  maxLength: 1000
+                }),
+                React.createElement('p', { className: 'mt-1 text-xs text-gray-500 dark:text-gray-400' }, `${content.length}/1000`)
+              ),
+              
+              React.createElement(
+                'div',
+                { className: 'mb-4' },
+                React.createElement('label', { htmlFor: 'imageUrl', className: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' }, '图片URL（可选）'),
+                React.createElement('input', {
+                  type: 'text',
+                  id: 'imageUrl',
+                  value: imageUrl,
+                  onChange: (e) => setImageUrl(e.target.value),
+                  placeholder: '请输入图片URL',
+                  className: 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white'
+                }),
+                React.createElement('p', { className: 'mt-1 text-xs text-gray-500 dark:text-gray-400' }, '支持JPG、PNG等常见图片格式')
+              ),
+              
+              React.createElement(
+                'div',
+                { className: 'flex justify-end space-x-3 mt-6' },
+                React.createElement(
+                  'button',
+                  {
+                    type: 'button',
+                    onClick: onClose,
+                    className: 'px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                  },
+                  '取消'
+                ),
+                React.createElement(
+                  'button',
+                  {
+                    type: 'submit',
+                    disabled: isSubmitting,
+                    className: 'px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'
+                  },
+                  isSubmitting ? (
+                    React.createElement(
+                      React.Fragment,
+                      null,
+                      React.createElement('i', { className: 'fa fa-circle-o-notch fa-spin mr-2' }),
+                      '创建中...'
+                    )
+                  ) : (
+                    '创建'
+                  )
+                )
+              )
+            )
+          )
+        )
+      );
+    }
+    
+    // 新闻卡片组件
+    function NewsCard({ news, isTeacherView, onDelete }) {
+      return React.createElement(
+        'div',
+        { className: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 hover:-translate-y-1 hover:shadow-md transition-all duration-200' },
+        news.imageUrl && React.createElement(
+          'div',
+          { className: 'h-48 overflow-hidden' },
+          React.createElement('img', {
+            src: news.imageUrl,
+            alt: news.title,
+            className: 'w-full h-full object-cover'
+          })
+        ),
+        
+        React.createElement(
+          'div',
+          { className: 'p-5' },
+          React.createElement(
+            'div',
+            { className: 'flex justify-between items-start mb-2' },
+            React.createElement('h3', { className: 'text-lg font-semibold text-gray-900 dark:text-white line-clamp-2' }, news.title),
+            isTeacherView && onDelete && React.createElement(
+              'button',
+              {
+                onClick: onDelete,
+                className: 'text-red-500 hover:text-red-700 focus:outline-none',
+                ariaLabel: '删除新闻'
+              },
+              React.createElement('i', { className: 'fa fa-trash' })
+            )
+          ),
+          
+          React.createElement('p', { className: 'text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2' }, news.content),
+          
+          news.newsUrl && React.createElement(
+            'div',
+            { className: 'flex items-center mb-4 text-xs text-blue-600 dark:text-blue-400' },
+            React.createElement('i', { className: 'fa fa-link mr-1' }),
+            React.createElement(
+              'a',
+              {
+                href: news.newsUrl,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                className: 'hover:underline truncate'
+              },
+              '查看原文'
+            )
+          ),
+          
+          React.createElement(
+            'div',
+            { className: 'flex flex-wrap gap-2 mb-4' },
+            React.createElement('span', { className: 'px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-md text-xs' }, new Date(news.createdAt).toLocaleDateString()),
+            React.createElement('span', { className: 'px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 rounded-md text-xs flex items-center' },
+              React.createElement('i', { className: 'fa fa-comment mr-1' }),
+              `${news.commentsCount} 条观点`
+            )
+          ),
+          
+          React.createElement(
+            'div',
+            { className: 'flex justify-between items-center' },
+            React.createElement(
+              'a',
+              {
+                href: `#/news/${news.id}`,
+                className: 'text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300'
+              },
+              isTeacherView ? '查看详情' : '参与讨论',
+              React.createElement('i', { className: 'fa fa-arrow-right ml-1' })
+            ),
+            
+            isTeacherView && React.createElement(
+              'div',
+              { className: 'flex space-x-2' },
+              React.createElement(
+                'a',
+                {
+                  href: `#/comment-generation/${news.id}`,
+                  className: 'px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-xs flex items-center'
+                },
+                React.createElement('i', { className: 'fa fa-magic mr-1' }),
+                '生成评论'
+              ),
+              React.createElement(
+                'a',
+                {
+                  href: `#/viewpoint-visualization/${news.id}`,
+                  className: 'px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-xs flex items-center'
+                },
+                React.createElement('i', { className: 'fa fa-bar-chart mr-1' }),
+                '观点图谱'
+              )
+            )
+          )
+        )
+      );
+    }
+    
+    // 观点卡片组件
+    function ViewpointCard({ viewpoint, onDelete, onAgree, currentUserId, isTeacher }) {
+      const isOwnViewpoint = viewpoint.userId === currentUserId;
+      
+      return React.createElement(
+        'div',
+        { className: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700' },
+        React.createElement(
+          'div',
+          { className: 'flex justify-between items-start mb-3' },
+          React.createElement(
+            'div',
+            null,
+            React.createElement('h4', { className: 'text-sm font-medium text-gray-900 dark:text-white' }, viewpoint.userName),
+            React.createElement(
+              'div',
+              { className: 'flex items-center mt-1' },
+              React.createElement('span', { className: 'px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-md text-xs' }, viewpoint.category),
+              React.createElement('span', { className: 'ml-2 text-xs text-gray-500 dark:text-gray-400' }, new Date(viewpoint.createdAt).toLocaleString())
+            )
+          ),
+          
+          (isOwnViewpoint || isTeacher) && React.createElement(
+            'button',
+            {
+              onClick: () => onDelete(viewpoint.id),
+              className: 'text-gray-400 hover:text-red-500 focus:outline-none',
+              ariaLabel: '删除观点'
+            },
+            React.createElement('i', { className: 'fa fa-trash' })
+          )
+        ),
+        
+        React.createElement('p', { className: 'text-gray-700 dark:text-gray-300 text-sm mb-4' }, viewpoint.content),
+        
+        React.createElement(
+          'div',
+          { className: 'flex items-center justify-between' },
+          React.createElement(
+            'button',
+            {
+              onClick: () => onAgree(viewpoint.id),
+              className: 'flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none',
+              'data-tap-highlight': ''
+            },
+            React.createElement('i', { className: 'fa fa-thumbs-up mr-1' }),
+            React.createElement('span', null, viewpoint.agreeCount)
+          )
+        )
+      );
+    }
+    
+    // 观点表单组件
+    function ViewpointForm({ onSubmit }) {
+      const [content, setContent] = React.useState('');
+      const [category, setCategory] = React.useState('');
+      const [isSubmitting, setIsSubmitting] = React.useState(false);
+      
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        
+        if (!content.trim()) {
+          alert('请输入您的观点内容');
+          return;
+        }
+        
+        if (!category.trim()) {
+          alert('请选择观点类别');
+          return;
+        }
+        
+        setIsSubmitting(true);
+        
+        // 模拟提交延迟
+        setTimeout(() => {
+          onSubmit(content.trim(), category.trim());
+          setContent('');
+          setIsSubmitting(false);
+        }, 500);
+      };
+      
+      // 预定义的观点类别
+      const categories = [
+        '政治观点',
+        '经济分析',
+        '社会影响',
+        '文化视角',
+        '教育意义',
+        '个人感受',
+        '其他'
+      ];
+      
+      return React.createElement(
+        'form',
+        { onSubmit: handleSubmit, className: 'space-y-4' },
+        React.createElement(
+          'div',
+          { className: 'mb-4' },
+          React.createElement('label', { htmlFor: 'content', className: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' }, '您的观点'),
+          React.createElement('textarea', {
+            id: 'content',
+            value: content,
+            onChange: (e) => setContent(e.target.value),
+            placeholder: '请分享您对这则新闻的看法和观点...',
+            className: 'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white min-h-[120px]',
+            maxLength: 500
+          }),
+          React.createElement('p', { className: 'mt-1 text-xs text-gray-500 dark:text-gray-400' }, `${content.length}/500`)
+        ),
+        
+        React.createElement(
+          'div',
+          { className: 'mb-4' },
+          React.createElement('label', { className: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2' }, '观点类别'),
+          React.createElement(
+            'div',
+            { className: 'flex flex-wrap gap-2' },
+            categories.map((cat) => React.createElement(
+              'label',
+              {
+                key: cat,
+                className: `px-4 py-2 rounded-md cursor-pointer transition-all ${
+                  category === cat
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
+                }`
+              },
+              React.createElement('input', {
+                type: 'radio',
+                name: 'category',
+                value: cat,
+                checked: category === cat,
+                onChange: (e) => setCategory(e.target.value),
+                className: 'sr-only'
+              }),
+              cat
+            ))
+          )
+        ),
+        
+        React.createElement(
+          'div',
+          { className: 'flex justify-end' },
+          React.createElement(
+            'button',
+            {
+              type: 'submit',
+              disabled: isSubmitting,
+              className: 'px-5 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'
+            },
+            isSubmitting ? (
+              React.createElement(
+                React.Fragment,
+                null,
+                React.createElement('i', { className: 'fa fa-circle-o-notch fa-spin mr-2' }),
+                '提交中...'
+              )
+            ) : (
+              React.createElement(
+                React.Fragment,
+                null,
+                React.createElement('i', { className: 'fa fa-paper-plane mr-2' }),
+                '提交观点'
+              )
+            )
+          )
+        )
+      );
+    }
+    
+    // 导航栏组件
+    function Navbar() {
+      const { user, logout } = React.useContext(AuthContext);
+      const { theme, toggleTheme } = useTheme();
+      
+      const handleLogout = () => {
+        logout();
+        alert('已成功登出');
+        window.location.hash = '/login';
+      };
+      
+      return React.createElement(
+        'header',
+        { className: 'bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700' },
+        React.createElement(
+          'div',
+          { className: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8' },
+          React.createElement(
+            'div',
+            { className: 'flex justify-between h-16' },
+            React.createElement(
+              'div',
+              { className: 'flex items-center' },
+              React.createElement(
+                'div',
+                { className: 'flex-shrink-0 flex items-center' },
+                React.createElement('i', { className: 'fa fa-comments text-blue-600 text-xl mr-2' }),
+                React.createElement('span', { className: 'text-lg font-semibold text-gray-900 dark:text-white' }, '新闻评论教学智能体')
+              ),
+              
+              React.createElement(
+                'div',
+                { className: 'hidden sm:ml-6 sm:flex sm:space-x-8' },
+                user?.role === 'teacher' ? (
+                  React.createElement(
+                    'a',
+                    {
+                      href: '#/teacher',
+                      className: 'border-blue-500 text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
+                    },
+                    React.createElement('i', { className: 'fa fa-home mr-1' }),
+                    '首页'
+                  )
+                ) : (
+                  React.createElement(
+                    'a',
+                    {
+                      href: '#/student',
+                      className: 'border-blue-500 text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium'
+                    },
+                    React.createElement('i', { className: 'fa fa-home mr-1' }),
+                    '首页'
+                  )
+                )
+              )
+            ),
+            
+            React.createElement(
+              'div',
+              { className: 'flex items-center space-x-4' },
+              React.createElement(
+                'button',
+                {
+                  onClick: toggleTheme,
+                  className: 'p-2 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
+                  ariaLabel: '切换主题'
+                },
+                theme === 'light' ? React.createElement('i', { className: 'fa fa-moon-o' }) : React.createElement('i', { className: 'fa fa-sun-o' })
+              ),
+              
+              React.createElement(
+                'div',
+                { className: 'relative' },
+                React.createElement(
+                  'button',
+                  { className: 'flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none' },
+                  React.createElement('span', { className: 'mr-1' }, `欢迎，${user?.name}`),
+                  React.createElement('span', { className: 'px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded' },
+                    user?.role === 'teacher' ? '教师' : '学生'
+                  )
+                )
+              ),
+              
+              React.createElement(
+                'button',
+                {
+                  onClick: handleLogout,
+                  className: 'ml-3 px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
+                },
+                React.createElement('i', { className: 'fa fa-sign-out mr-1' }),
+                '退出登录'
+              )
+            )
+          )
+        )
+      );
+    }
+    
+    // 侧边栏组件
+    function Sidebar() {
+      const { user } = React.useContext(AuthContext);
+      
+      // 教师侧边栏菜单
+      const teacherMenuItems = [
+        {
+          id: 'dashboard',
+          name: '控制面板',
+          icon: 'fa-dashboard',
+          path: '/teacher',
+        },
+        {
+          id: 'help',
+          name: '使用帮助',
+          icon: 'fa-question-circle',
+          path: '/help',
+        },
+      ];
+      
+      // 学生侧边栏菜单
+      const studentMenuItems = [
+        {
+          id: 'discussions',
+          name: '讨论主题',
+          icon: 'fa-comments',
+          path: '/student',
+        },
+        {
+          id: 'my-viewpoints',
+          name: '我的观点',
+          icon: 'fa-lightbulb-o',
+          path: '/my-viewpoints',
+        },
+        {
+          id: 'help',
+          name: '使用帮助',
+          icon: 'fa-question-circle',
+          path: '/help',
+        },
+      ];
+      
+      const menuItems = user?.role === 'teacher' ? teacherMenuItems : studentMenuItems;
+      
+      return React.createElement(
+        'aside',
+        { className: 'w-64 h-[calc(100vh-4rem)] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 hidden md:block overflow-y-auto' },
+        React.createElement(
+          'nav',
+          { className: 'p-4' },
+          React.createElement(
+            'div',
+            { className: 'space-y-1' },
+            menuItems.map((item) => React.createElement(
+              'a',
+              {
+                key: item.id,
+                href: `#${item.path}`,
+                className: 'group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700'
+              },
+              React.createElement('i', { className: `fa ${item.icon} mr-3 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors` }),
+              item.name
+            ))
+          ),
+          
+          React.createElement(
+            'div',
+            { className: 'mt-10' },
+            React.createElement('h3', { className: 'px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider' }, '教学资源'),
+            React.createElement(
+              'div',
+              { className: 'mt-3 space-y-1' },
+              React.createElement(
+                'a',
+                {
+                  href: '#/resources',
+                  className: 'group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700'
+                },
+                React.createElement('i', { className: 'fa fa-book mr-3 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors' }),
+                '评论写作指南'
+              ),
+              React.createElement(
+                'a',
+                {
+                  href: '#/examples',
+                  className: 'group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700'
+                },
+                React.createElement('i', { className: 'fa fa-file-text-o mr-3 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors' }),
+                '优秀案例'
+              )
+            )
+          )
+        )
+      );
+    }
+    
+    // Empty组件
+    function Empty() {
+      return React.createElement(
+        'div',
+        { className: 'flex h-full items-center justify-center' },
+        React.createElement(
+          'button',
+          { onClick: () => alert('Coming soon') },
+          'Empty'
+        )
+      );
+    }
+    
+    // 登录页面
+    function Login() {
+      const [role, setRole] = React.useState('student');
+      const [username, setUsername] = React.useState('');
+      const [isSubmitting, setIsSubmitting] = React.useState(false);
+      const { setIsAuthenticated, setUser } = React.useContext(AuthContext);
+    
+      const handleLogin = (e) => {
+        e.preventDefault();
+        
+        if (!username.trim()) {
+          alert('请输入用户名');
+          return;
+        }
+    
+        setIsSubmitting(true);
+    
+        // 模拟登录请求延迟
+        setTimeout(() => {
+          // 为教师和学生生成不同的ID格式，但都允许使用任意姓名登录
+          const selectedUser = { 
+            id: role === 'teacher' ? `teacher_${Date.now()}` : `student_${Date.now()}`, 
+            name: username, 
+            role: role 
+          };
+    
+          setUser(selectedUser);
+          setIsAuthenticated(true);
+          alert(`欢迎，${selectedUser.name}!`);
+          setIsSubmitting(false);
+          window.location.hash = role === 'teacher' ? '/teacher' : '/student';
+        }, 800);
+      };
+    
+      return React.createElement(
+        'div',
+        { className: 'flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-blue-950 relative overflow-hidden' },
+        // 背景装饰元素
+        React.createElement(
+          'div',
+          { className: 'absolute inset-0 overflow-hidden -z-10' },
+          React.createElement('div', { className: 'absolute -top-40 -right-40 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob' }),
+          React.createElement('div', { className: 'absolute -bottom-40 -left-40 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000' }),
+          React.createElement('div', { className: 'absolute top-1/4 -left-20 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000' })
+        ),
+    
+        // 登录卡片
+        React.createElement(
+          'div',
+          { className: 'w-full max-w-md rounded-2xl bg-white/90 dark:bg-gray-800/90 shadow-2xl overflow-hidden backdrop-blur-sm border border-gray-100 dark:border-gray-700' },
+          // 卡片头部 - 美化的封面区域
+          React.createElement(
+            'div',
+            { className: 'relative h-40 bg-gradient-to-r from-blue-600 to-indigo-600 overflow-hidden' },
+            React.createElement(
+              'div',
+              { className: 'absolute inset-0 flex items-center justify-center' },
+              React.createElement(
+                'div',
+                { className: 'text-center' },
+                React.createElement(
+                  'div',
+                  { className: 'w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto' },
+                  React.createElement('i', { className: 'fa fa-comments text-white text-4xl' })
+                ),
+                React.createElement('h1', { className: 'mt-4 text-2xl font-bold text-white' }, '新闻评论教学智能体')
+              )
+            ),
+            // 装饰图形
+            React.createElement('div', { className: 'absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-white/10 to-transparent' }),
+            React.createElement('div', { className: 'absolute top-5 right-5 w-24 h-24 bg-white/10 rounded-full blur-xl' }),
+            React.createElement('div', { className: 'absolute bottom-5 left-10 w-16 h-16 bg-white/10 rounded-full blur-xl' })
+          ),
+    
+          // 卡片内容
+          React.createElement(
+            'div',
+            { className: 'p-6 md:p-8' },
+            React.createElement(
+              'form',
+              { onSubmit: handleLogin },
+              // 角色选择
+              React.createElement(
+                'div',
+                { className: 'mb-6' },
+                React.createElement('label', { className: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2' }, '选择身份'),
+                React.createElement(
+                  'div',
+                  { className: 'flex space-x-4' },
+                  React.createElement(
+                    'label',
+                    { className: 'flex items-center cursor-pointer' },
+                    React.createElement('input', {
+                      type: 'radio',
+                      name: 'role',
+                      value: 'teacher',
+                      checked: role === 'teacher',
+                      onChange: () => setRole('teacher'),
+                      className: 'w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500'
+                    }),
+                    React.createElement('span', { className: 'ml-2 text-gray-700 dark:text-gray-300' },
+                      React.createElement('i', { className: 'fa fa-user-tie mr-1' }),
+                      '教师'
+                    )
+                  ),
+                  React.createElement(
+                    'label',
+                    { className: 'flex items-center cursor-pointer' },
+                    React.createElement('input', {
+                      type: 'radio',
+                      name: 'role',
+                      value: 'student',
+                      checked: role === 'student',
+                      onChange: () => setRole('student'),
+                      className: 'w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500'
+                    }),
+                    React.createElement('span', { className: 'ml-2 text-gray-700 dark:text-gray-300' },
+                      React.createElement('i', { className: 'fa fa-graduation-cap mr-1' }),
+                      '学生'
+                    )
+                  )
+                )
+              ),
+    
+              // 用户名输入
+              React.createElement(
+                'div',
+                { className: 'mb-6' },
+                React.createElement('label', { htmlFor: 'username', className: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2' },
+                  role === 'teacher' ? '教师姓名' : '您的姓名'
+                ),
+                React.createElement(
+                  'div',
+                  { className: 'relative' },
+                  React.createElement(
+                    'div',
+                    { className: 'absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none' },
+                    React.createElement('i', { className: `fa ${role === 'teacher' ? 'fa-user-tie' : 'fa-graduation-cap'} text-gray-400` })
+                  ),
+                  React.createElement('input', {
+                    type: 'text',
+                    id: 'username',
+                    value: username,
+                    onChange: (e) => setUsername(e.target.value),
+                    placeholder: role === 'teacher' ? '请输入您的姓名' : '请输入您的姓名',
+                    className: 'w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white transition-all duration-200'
+                  })
+                )
+              ),
+    
+              // 登录按钮
+              React.createElement(
+                'button',
+                {
+                  type: 'submit',
+                  disabled: isSubmitting || !username.trim(),
+                  className: 'w-full flex justify-center items-center px-4 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200'
+                },
+                isSubmitting ? (
+                  React.createElement(
+                    React.Fragment,
+                    null,
+                    React.createElement('i', { className: 'fa fa-circle-o-notch fa-spin mr-2' }),
+                    '登录中...'
+                  )
+                ) : (
+                  React.createElement(
+                    React.Fragment,
+                    null,
+                    React.createElement('i', { className: 'fa fa-sign-in mr-2' }),
+                    '登录'
+                  )
+                )
+              )
+            ),
+    
+            // 登录提示
+            React.createElement(
+              'div',
+              { className: 'mt-6 text-center text-sm text-gray-600 dark:text-gray-400' },
+              React.createElement(
+                'p',
+                { className: 'mb-1 flex items-center justify-center' },
+                React.createElement('i', { className: 'fa fa-info-circle mr-1 text-blue-500' }),
+                role === 'teacher' ? '请输入您的真实姓名' : '请输入您的姓名'
+              ),
+              React.createElement(
+                'p',
+                { className: 'text-xs mt-2 bg-blue-50 dark:bg-blue-900/30 py-2 px-3 rounded-md' },
+                '登录后可以参与新闻讨论或管理学生观点'
+              )
+            )
+          )
+        )
+      );
+    }
+    
+    // 主页重定向组件
+    function Home() {
+      const { isAuthenticated, user } = React.useContext(AuthContext);
+      
+      if (!isAuthenticated) {
+        window.location.hash = '/login';
+        return React.createElement('div', null, '重定向中...');
+      }
+      
+      if (user?.role === 'teacher') {
+        window.location.hash = '/teacher';
+        return React.createElement('div', null, '重定向中...');
+      }
+      
+      window.location.hash = '/student';
+      return React.createElement('div', null, '重定向中...');
+    }
+    
+    // 教师控制面板
+    function TeacherDashboard() {
+      const [isModalOpen, setIsModalOpen] = React.useState(false);
+      const { news, addNews, deleteNews } = useNews();
+      const [searchTerm, setSearchTerm] = React.useState('');
+    
+      // 过滤新闻
+      const filteredNews = news.filter(item => 
+        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.content.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    
+      const handleDeleteNews = (id) => {
+        if (window.confirm('确定要删除这条新闻吗？')) {
+          deleteNews(id);
+          alert('新闻已删除');
+        }
+      };
+    
+      return React.createElement(
+        'div',
+        { className: 'max-w-7xl mx-auto' },
+        React.createElement(
+          'header',
+          { className: 'mb-8' },
+          React.createElement('h1', { className: 'text-3xl font-bold text-gray-900 dark:text-white mb-2' }, '新闻评论教学管理'),
+          React.createElement('p', { className: 'text-gray-600 dark:text-gray-400' }, '管理新闻主题，查看学生观点，生成客观评论')
+        ),
+    
+        React.createElement(
+          'div',
+          { className: 'flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4' },
+          React.createElement(
+            'div',
+            { className: 'relative w-full md:w-64' },
+            React.createElement('input', {
+              type: 'text',
+              placeholder: '搜索新闻...',
+              value: searchTerm,
+              onChange: (e) => setSearchTerm(e.target.value),
+              className: 'w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+            }),
+            React.createElement('i', { className: 'fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400' })
+          ),
+          
+          React.createElement(
+            'button',
+            {
+              onClick: () => setIsModalOpen(true),
+              className: 'flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-colors'
+            },
+            React.createElement('i', { className: 'fa fa-plus mr-2' }),
+            '创建新闻主题'
+          )
+        ),
+    
+        React.createElement(
+          'div',
+          { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' },
+          filteredNews.length > 0 ? (
+            filteredNews.map((newsItem) => React.createElement(
+              NewsCard,
+              {
+                key: newsItem.id,
+                news: newsItem,
+                onDelete: () => handleDeleteNews(newsItem.id),
+                isTeacherView: true
+              }
+            ))
+          ) : (
+            React.createElement(
+              'div',
+              { className: 'col-span-full flex flex-col items-center justify-center p-10 text-center' },
+              React.createElement('i', { className: 'fa fa-newspaper-o text-5xl text-gray-300 dark:text-gray-600 mb-4' }),
+              React.createElement('h3', { className: 'text-xl font-medium text-gray-900 dark:text-white mb-2' }, '暂无新闻主题'),
+              React.createElement(
+                'p',
+                { className: 'text-gray-600 dark:text-gray-400 max-w-md' },
+                searchTerm ? '没有找到匹配的新闻，请尝试其他关键词。' : '点击"创建新闻主题"按钮开始添加您的第一条新闻。'
+              ),
+              !searchTerm && React.createElement(
+                'button',
+                {
+                  onClick: () => setIsModalOpen(true),
+                  className: 'mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-colors'
+                },
+                React.createElement('i', { className: 'fa fa-plus mr-2' }),
+                '创建第一条新闻'
+              )
+            )
+          )
+        ),
+    
+        isModalOpen && React.createElement(CreateNewsModal, { onClose: () => setIsModalOpen(false), onSubmit: addNews })
+      );
+    }
+    
+    // 学生视图
+    function StudentView() {
+      const { news } = useNews();
+      const [searchTerm, setSearchTerm] = React.useState('');
+      const [sortBy, setSortBy] = React.useState('newest');
+    
+      // 过滤和排序新闻
+      const filteredNews = [...news]
+        .filter(item => 
+          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.content.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => {
+          if (sortBy === 'newest') {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          } else {
+            // 按评论数排序（模拟热度）
+            return b.commentsCount - a.commentsCount;
+          }
+        });
+    
+      return React.createElement(
+        'div',
+        { className: 'max-w-6xl mx-auto' },
+        React.createElement(
+          'header',
+          { className: 'mb-8' },
+          React.createElement('h1', { className: 'text-3xl font-bold text-gray-900 dark:text-white mb-2' }, '新闻评论课堂'),
+          React.createElement('p', { className: 'text-gray-600 dark:text-gray-400' }, '参与讨论，分享您的观点')
+        ),
+    
+        React.createElement(
+          'div',
+          { className: 'flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4' },
+          React.createElement(
+            'div',
+            { className: 'relative w-full md:w-64' },
+            React.createElement('input', {
+              type: 'text',
+              placeholder: '搜索新闻...',
+              value: searchTerm,
+              onChange: (e) => setSearchTerm(e.target.value),
+              className: 'w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+            }),
+            React.createElement('i', { className: 'fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400' })
+          ),
+          
+          React.createElement(
+            'div',
+            { className: 'flex items-center space-x-2' },
+            React.createElement('span', { className: 'text-sm text-gray-600 dark:text-gray-400' }, '排序方式:'),
+            React.createElement(
+              'div',
+              { className: 'inline-flex rounded-md shadow-sm', role: 'group' },
+              React.createElement(
+                'button',
+                {
+                  type: 'button',
+                  onClick: () => setSortBy('newest'),
+                  className: `px-4 py-2 text-sm font-medium rounded-l-lg ${
+                    sortBy === 'newest' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`
+                },
+                '最新'
+              ),
+              React.createElement(
+                'button',
+                {
+                  type: 'button',
+                  onClick: () => setSortBy('popularity'),
+                  className: `px-4 py-2 text-sm font-medium rounded-r-lg ${
+                    sortBy === 'popularity' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`
+                },
+                '热门'
+              )
+            )
+          )
+        ),
+    
+        React.createElement(
+          'div',
+          { className: 'grid grid-cols-1 md:grid-cols-2 gap-6' },
+          filteredNews.length > 0 ? (
+            filteredNews.map((newsItem) => React.createElement(
+              NewsCard,
+              {
+                key: newsItem.id,
+                news: newsItem,
+                isTeacherView: false
+              }
+            ))
+          ) : (
+            React.createElement(
+              'div',
+              { className: 'col-span-full flex flex-col items-center justify-center p-10 text-center' },
+              React.createElement('i', { className: 'fa fa-newspaper-o text-5xl text-gray-300 dark:text-gray-600 mb-4' }),
+              React.createElement('h3', { className: 'text-xl font-medium text-gray-900 dark:text-white mb-2' }, '暂无新闻主题'),
+              React.createElement(
+                'p',
+                { className: 'text-gray-600 dark:text-gray-400 max-w-md' },
+                searchTerm ? '没有找到匹配的新闻，请尝试其他关键词。' : '老师还没有发布任何新闻主题，请稍后再来查看。'
+              )
+            )
+          )
+        )
+      );
+    }
+    
+    // 新闻详情页面
+    function NewsDetail() {
+      const { id } = new URLSearchParams(window.location.hash.split('?')[1] || '');
+      const { user } = React.useContext(AuthContext);
+      const { news, updateNews } = useNews();
+      const { viewpoints, addViewpoint, deleteViewpoint, updateViewpoint } = useViewpoints();
+      
+      const [selectedCategory, setSelectedCategory] = React.useState(null);
+      const [sortBy, setSortBy] = React.useState('newest');
+      
+      const newsItem = news.find(item => item.id === id);
+      
+      if (!newsItem) {
+        return React.createElement(
+          'div',
+          { className: 'flex items-center justify-center h-64' },
+          React.createElement('p', { className: 'text-gray-500 dark:text-gray-400' }, '未找到该新闻')
+        );
+      }
+      
+      // 获取当前新闻的所有观点
+      const newsViewpoints = viewpoints.filter(vp => vp.newsId === id);
+      
+      // 过滤和排序观点
+      const filteredViewpoints = [...newsViewpoints]
+        .filter(vp => !selectedCategory || vp.category === selectedCategory)
+        .sort((a, b) => {
+          if (sortBy === 'newest') {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          } else {
+            return b.agreeCount - a.agreeCount;
+          }
+        });
+      
+      // 获取所有唯一的观点类别
+      const categories = [...new Set(newsViewpoints.map(vp => vp.category))];
+      
+      const handleAddViewpoint = (content, category) => {
+        if (!user) return;
+        
+        const newViewpoint = {
+          id: `vp_${Date.now()}`,
+          newsId: id,
+          userId: user.id,
+          userName: user.name,
+          content,
+          category,
+          agreeCount: 0,
+          createdAt: new Date().toISOString(),
+        };
+        
+        addViewpoint(newViewpoint);
+        
+        // 更新新闻的评论数
+        updateNews({
+          ...newsItem,
+          commentsCount: newsItem.commentsCount + 1
+        });
+        
+        alert('观点提交成功！');
+      };
+      
+      const handleDeleteViewpoint = (viewpointId) => {
+        if (window.confirm('确定要删除这条观点吗？')) {
+          deleteViewpoint(viewpointId);
+          
+          // 更新新闻的评论数
+          updateNews({
+            ...newsItem,
+            commentsCount: Math.max(0, newsItem.commentsCount - 1)
+          });
+          
+          alert('观点已删除');
+        }
+      };
+      
+      const handleAgree = (viewpointId) => {
+        const viewpoint = viewpoints.find(vp => vp.id === viewpointId);
+        if (viewpoint) {
+          updateViewpoint({
+            ...viewpoint,
+            agreeCount: viewpoint.agreeCount + 1
+          });
+        }
+      };
+    
+      return React.createElement(
+        'div',
+        { className: 'max-w-4xl mx-auto' },
+        // 新闻内容
+        React.createElement(
+          'div',
+          { className: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8' },
+          React.createElement(
+            'div',
+            { className: 'flex justify-between items-start mb-4' },
+            React.createElement('h1', { className: 'text-2xl font-bold text-gray-900 dark:text-white' }, newsItem.title),
+            user?.role === 'teacher' && React.createElement(
+              'div',
+              { className: 'flex space-x-2' },
+              React.createElement(
+                'a',
+                {
+                  href: `#/comment-generation/${id}`,className: 'px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm'
+                },
+                React.createElement('i', { className: 'fa fa-magic mr-1' }),
+                '生成评论'
+              ),
+              React.createElement(
+                'a',
+                {
+                  href: `#/viewpoint-visualization/${id}`,
+                  className: 'px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm'
+                },
+                React.createElement('i', { className: 'fa fa-bar-chart mr-1' }),
+                '观点图谱'
+              )
+            )
+          ),
+          
+          React.createElement(
+            'div',
+            { className: 'text-sm text-gray-500 dark:text-gray-400 mb-4' },
+            React.createElement('span', null, '发布时间: ', new Date(newsItem.createdAt).toLocaleString()),
+            React.createElement('span', { className: 'mx-2' }, '•'),
+            React.createElement('span', null, '评论数: ', newsItem.commentsCount)
+          ),
+          
+          React.createElement(
+            'div',
+            { className: 'prose dark:prose-invert max-w-none' },
+            React.createElement('p', { className: 'text-gray-700 dark:text-gray-300 leading-relaxed' }, newsItem.content),
+            
+            newsItem.newsUrl && React.createElement(
+              'div',
+              { className: 'my-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center' },
+              React.createElement('i', { className: 'fa fa-link text-blue-500 mr-2' }),
+              React.createElement(
+                'a',
+                {
+                  href: newsItem.newsUrl,
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+                  className: 'text-blue-600 dark:text-blue-400 hover:underline text-sm break-all'
+                },
+                '查看原文链接'
+              )
+            ),
+            
+            newsItem.imageUrl && React.createElement(
+              'div',
+              { className: 'my-4 rounded-lg overflow-hidden' },
+              React.createElement('img', {
+                src: newsItem.imageUrl,
+                alt: newsItem.title,
+                className: 'w-full h-auto object-cover rounded-lg'
+              })
+            )
+          )
+        ),
+        
+        // 学生提交观点
+        user?.role === 'student' && React.createElement(
+          'div',
+          { className: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8' },
+          React.createElement('h2', { className: 'text-xl font-semibold text-gray-900 dark:text-white mb-4' }, '分享您的观点'),
+          React.createElement(ViewpointForm, { onSubmit: handleAddViewpoint })
+        ),
+        
+        // 观点筛选和排序
+        (categories.length > 0 || user?.role === 'teacher') && React.createElement(
+          'div',
+          { className: 'flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4' },
+          React.createElement('h2', { className: 'text-xl font-semibold text-gray-900 dark:text-white' }, `所有观点 (${filteredViewpoints.length})`),
+          
+          React.createElement(
+            'div',
+            { className: 'flex flex-wrap items-center gap-3' },
+            // 分类筛选
+            categories.length > 0 && React.createElement(
+              'div',
+              { className: 'flex items-center space-x-2' },
+              React.createElement('span', { className: 'text-sm text-gray-600 dark:text-gray-400' }, '分类:'),
+              React.createElement(
+                'div',
+                { className: 'inline-flex rounded-md shadow-sm', role: 'group' },
+                React.createElement(
+                  'button',
+                  {
+                    type: 'button',
+                    onClick: () => setSelectedCategory(null),
+                    className: `px-3 py-1 text-sm font-medium rounded-l-lg ${
+                      selectedCategory === null 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`
+                  },
+                  '全部'
+                ),
+                categories.map((category, index) => React.createElement(
+                  'button',
+                  {
+                    key: category,
+                    type: 'button',
+                    onClick: () => setSelectedCategory(category),
+                    className: `px-3 py-1 text-sm font-medium ${
+                      selectedCategory === category 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    } ${index === categories.length - 1 ? 'rounded-r-lg' : ''}`
+                  },
+                  category
+                ))
+              )
+            ),
+            
+            // 排序
+            React.createElement(
+              'div',
+              { className: 'flex items-center space-x-2' },
+              React.createElement('span', { className: 'text-sm text-gray-600 dark:text-gray-400' }, '排序:'),
+              React.createElement(
+                'div',
+                { className: 'inline-flex rounded-md shadow-sm', role: 'group' },
+                React.createElement(
+                  'button',
+                  {
+                    type: 'button',
+                    onClick: () => setSortBy('newest'),
+                    className: `px-3 py-1 text-sm font-medium rounded-l-lg ${
+                      sortBy === 'newest' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`
+                  },
+                  '最新'
+                ),
+                React.createElement(
+                  'button',
+                  {
+                    type: 'button',
+                    onClick: () => setSortBy('agreeCount'),
+                    className: `px-3 py-1 text-sm font-medium rounded-r-lg ${
+                      sortBy === 'agreeCount' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`
+                  },
+                  '赞同数'
+                )
+              )
+            )
+          )
+        ),
+        
+        // 观点列表
+        React.createElement(
+          'div',
+          { className: 'space-y-4' },
+          filteredViewpoints.length > 0 ? (
+            filteredViewpoints.map((viewpoint) => React.createElement(
+              ViewpointCard,
+              {
+                key: viewpoint.id,
+                viewpoint: viewpoint,
+                onDelete: handleDeleteViewpoint,
+                onAgree: handleAgree,
+                currentUserId: user?.id || '',
+                isTeacher: user?.role === 'teacher'
+              }
+            ))
+          ) : (
+            React.createElement(
+              'div',
+              { className: 'flex flex-col items-center justify-center p-10 bg-white dark:bg-gray-800 rounded-xl shadow-sm text-center' },
+              React.createElement('i', { className: 'fa fa-comment-o text-4xl text-gray-300 dark:text-gray-600 mb-4' }),
+              React.createElement('h3', { className: 'text-lg font-medium text-gray-900 dark:text-white mb-2' }, '暂无观点'),
+              React.createElement(
+                'p',
+                { className: 'text-gray-600 dark:text-gray-400' },
+                user?.role === 'student' ? '成为第一个分享观点的人吧！' : '还没有学生分享观点，请鼓励学生参与讨论。'
+              )
+            )
+          )
+        )
+      );
+    }
+    
+    // 评论生成页面
+    function CommentGeneration() {
+      const { id } = new URLSearchParams(window.location.hash.split('?')[1] || '');
+      const { user } = React.useContext(AuthContext);
+      const { news } = useNews();
+      const { viewpoints } = useViewpoints();
+      
+      const [generatedComment, setGeneratedComment] = React.useState('');
+      const [isGenerating, setIsGenerating] = React.useState(false);
+      const [analysisResult, setAnalysisResult] = React.useState(null);
+      const [generationSettings, setGenerationSettings] = React.useState({
+        length: 'medium', // short, medium, long
+        tone: 'neutral', // neutral, analytical, persuasive
+        emphasis: 'balanced', // balanced, consensus, diversity
+      });
+      
+      const newsItem = news.find(item => item.id === id);
+      const newsViewpoints = viewpoints.filter(vp => vp.newsId === id);
+      
+      // 提取关键词
+      const extractKeywords = (texts) => {
+        const keywordsMap = {};
+        // 扩展停用词列表，包含更多无效关键词
+        const stopwords = [
+          '的', '了', '在', '是', '我', '有', '和', '就', '不', '人', '都', '一', '一个', '上', '也', '很', '到', '说', '要', '去', '你', '会', '着', '没有', '看', '好', '自己', '这',
+          '这种', '这些', '这样', '这个', '这里', '那些', '那里', '那个', '它们', '他们', '她们', '我们', '你们', '咱们',
+          '因此', '因为', '所以', '但是', '然而', '不过', '而且', '并且', '同时', '另外', '此外',
+          '可能', '应该', '可以', '能够', '应该', '必须', '需要', '想要', '希望', '觉得', '认为',
+          '对于', '关于', '由于', '通过', '随着', '按照', '根据', '基于', '针对', '为了', '因为'
+        ];
+        
+        texts.forEach(text => {
+          const words = text.match(/[\u4e00-\u9fa5]+/g) || [];
+          words.forEach(word => {
+            if (word.length > 1 && !stopwords.includes(word)) {
+              keywordsMap[word] = (keywordsMap[word] || 0) + 1;
+            }
+          });
+        });
+        
+        return Object.entries(keywordsMap)
+          .sort(([,a], [,b]) => b - a)
+          .slice(0, 10)
+          .map(([word]) => word);
+      };
+      
+      // 分析情感倾向
+      const analyzeSentiment = (texts) => {
+        // 简单的情感词库，实际应用中可以使用更复杂的NLP库
+        const positiveWords = ['好', '优秀', '积极', '进步', '机遇', '发展', '成功', '支持', '希望', '创新'];
+        const negativeWords = ['问题', '挑战', '困难', '风险', '担忧', '不足', '缺陷', '反对', '危机', '压力'];
+        
+        let positiveCount = 0;
+        let negativeCount = 0;
+        
+        texts.forEach(text => {
+          positiveWords.forEach(word => {
+            if (text.includes(word)) positiveCount++;
+          });
+          negativeWords.forEach(word => {
+            if (text.includes(word)) negativeCount++;
+          });
+        });
+        
+        const total = positiveCount + negativeCount;
+        const neutralCount = Math.max(0, texts.length - total);
+        
+        return {
+          positive: Math.round((positiveCount / texts.length) * 100),
+          neutral: Math.round((neutralCount / texts.length) * 100),
+          negative: Math.round((negativeCount / texts.length) * 100),
+        };
+      };
+      
+      // 分析主题分布
+      const analyzeTopicDistribution = () => {
+        const categoryMap = newsViewpoints.reduce((acc, viewpoint) => {
+          if (!acc[viewpoint.category]) {
+            acc[viewpoint.category] = 0;
+          }
+          acc[viewpoint.category]++;
+          return acc;
+        }, {});
+        
+        return Object.entries(categoryMap)
+          .map(([topic, count]) => ({
+            topic,
+            count,
+            percentage: Math.round((count / newsViewpoints.length) * 100),
+          }))
+          .sort((a, b) => b.count - a.count);
+      };
+      
+      // 提取主要论点
+      const extractMainArguments = () => {
+        // 基于关键词和赞同数来识别主要论点
+        const argumentMap = {};
+        
+        newsViewpoints.forEach(viewpoint => {
+          // 提取观点中的核心句子作为潜在论点
+          const sentences = viewpoint.content.split(/[。！？]/).filter(s => s.length > 10);
+          if (sentences.length > 0) {
+            const keySentence = sentences[0];
+            
+            if (!argumentMap[keySentence]) {
+              argumentMap[keySentence] = {
+                count: 0,
+                quotes: [],
+                agreeCount: 0,
+              };
+            }
+            
+            argumentMap[keySentence].count++;
+            argumentMap[keySentence].quotes.push(viewpoint.content);
+            argumentMap[keySentence].agreeCount += viewpoint.agreeCount;
+          }
+        });
+        
+        // 转换为数组并排序
+        return Object.entries(argumentMap)
+          .map(([argument, data]) => ({
+            argument,
+            supportingViewpoints: data.count,
+            representativeQuotes: data.quotes.slice(0, 3),
+          }))
+          .sort((a, b) => b.supportingViewpoints - a.supportingViewpoints)
+          .slice(0, 5); // 取前5个主要论点
+      };
+      
+      // 识别对立观点
+      const identifyOpposingViews = () => {
+        // 基于类别和关键词识别潜在的对立观点
+        const opposingPairs = [];
+        const categories = [...new Set(newsViewpoints.map(vp => vp.category))];
+        
+        // 简单的类别对立关系映射
+        const opposingCategoryMap = {
+          '政治观点': ['经济分析', '个人感受'],
+          '社会影响': ['文化视角', '教育意义'],
+          '经济分析': ['政治观点', '文化视角'],
+        };
+        
+        // 寻找对立观点对
+        for (let i = 0; i < categories.length; i++) {
+          const catA = categories[i];
+          const opposingCategories = opposingCategoryMap[catA] || [];
+          
+          for (let j = i + 1; j < categories.length; j++) {
+            const catB = categories[j];
+            
+            // 如果两个类别被标记为对立，或者它们的关键词重叠度很低
+            if (opposingCategories.includes(catB)) {
+              const catAViewpoints = newsViewpoints.filter(vp => vp.category === catA);
+              const catBViewpoints = newsViewpoints.filter(vp => vp.category === catB);
+              
+              if (catAViewpoints.length > 0 && catBViewpoints.length > 0) {
+                // 选择赞同数最高的观点作为代表
+                const repViewA = catAViewpoints.sort((a, b) => b.agreeCount - a.agreeCount)[0];
+                const repViewB = catBViewpoints.sort((a, b) => b.agreeCount - a.agreeCount)[0];
+                
+                opposingPairs.push({
+                  viewA: {
+                    argument: repViewA.content,
+                    supporters: catAViewpoints.map(vp => vp.userName),
+                  },
+                  viewB: {
+                    argument: repViewB.content,
+                    supporters: catBViewpoints.map(vp => vp.userName),
+                  },
+                });
+              }
+            }
+          }
+        }
+        
+        return opposingPairs.slice(0, 2); // 最多返回2组对立观点
+      };
+      
+      // 执行完整的文本分析
+      const performTextAnalysis = () => {
+        const allContents = newsViewpoints.map(vp => vp.content);
+        
+        return {
+          keywords: extractKeywords(allContents),
+          sentiment: analyzeSentiment(allContents),
+          topicDistribution: analyzeTopicDistribution(),
+          mainArguments: extractMainArguments(),
+          opposingViews: identifyOpposingViews(),
+        };
+      };
+      
+      // 生成基于学生观点的综合评论
+      const generateComment = () => {
+        setIsGenerating(true);
+        
+        // 模拟AI分析和生成过程
+        setTimeout(() => {
+          try {
+            // 执行文本分析
+            const analysis = performTextAnalysis();
+            setAnalysisResult(analysis);
+            
+            // 根据分析结果生成综合评论
+            let comment = '';
+            
+            // 1. 引言部分 - 强调这是基于学生观点的整合
+            comment += `# 学生观点综合评论：${newsItem?.title}\n\n`;
+            comment += `## 观点整合前言\n\n`;
+            
+            switch (generationSettings.tone) {
+              case 'analytical':
+                comment += `本评论基于对${newsViewpoints.length}位学生提交的${newsViewpoints.length}条观点进行的系统性文本分析。`;
+                comment += `通过自然语言处理技术，我们提取了核心论点、分析了情感倾向，并识别出了主要共识与分歧。\n\n`;
+                break;
+              case 'persuasive':
+                comment += `综合全班同学的智慧结晶，我们得以从多个角度审视这一事件。`;
+                comment += `通过整合${newsViewpoints.length}位同学的观点，我们不仅看到了思想的碰撞，更发现了许多值得深入思考的洞见。\n\n`;
+                break;
+              default:
+                comment += `通过对${newsViewpoints.length}条学生观点的智能整合，我们得以梳理出大家对这一事件的主要看法和思考方向。`;
+                comment += `以下是基于所有学生观点的综合分析与评论。\n\n`;
+            }
+            
+            // 2. 核心关键词分析
+            if (analysis.keywords.length > 0) {
+              comment += `## 核心关注焦点\n\n`;
+              comment += `通过文本分析，我们提取出了学生观点中最常出现的核心关键词，这些词反映了大家对事件的主要关注点：\n\n`;
+              
+              const topKeywords = analysis.keywords.slice(0, 5);
+              comment += topKeywords.map((keyword, index) => 
+                `${index + 1}. ${keyword}（高频关键词，反映了同学们对这一方面的高度关注）`
+              ).join('\n');
+              
+              comment += `\n\n从关键词分布可以看出，${topKeywords[0]}是讨论的核心焦点，`;
+              comment += `其次是${topKeywords.slice(1, 3).join('、')}等方面，`;
+              comment += `这些共同构成了大家对这一事件的认知框架。\n\n`;
+            }
+            
+            // 3. 主要论点整合 - 这是核心部分
+            if (analysis.mainArguments.length > 0) {
+              comment += `## 主要观点整合\n\n`;
+              
+              analysis.mainArguments.forEach((arg, index) => {
+                comment += `### ${index + 1}. ${arg.argument}\n\n`;
+                comment += `- **支持情况**: 共有${arg.supportingViewpoints}位同学表达了类似观点，`;
+                comment += `约占总观点数的${Math.round((arg.supportingViewpoints / newsViewpoints.length) * 100)}%。\n\n`;
+                
+                // 引用代表性观点
+                if (arg.representativeQuotes.length > 0) {
+                  comment += `- **代表性表述**:\n`;
+                  arg.representativeQuotes.forEach((quote, qIndex) => {
+                    comment += `  * "${quote.substring(0, 60)}..."\n`;
+                  });
+                  comment += `\n`;
+                }
+              });
+            }
+            
+            // 4. 观点共识提炼
+            if (generationSettings.emphasis === 'balanced' || generationSettings.emphasis === 'consensus') {
+              const consensusPoints = analysis.mainArguments.filter(arg => 
+                arg.supportingViewpoints >= Math.max(3, Math.floor(newsViewpoints.length * 0.3))
+              );
+              
+              if (consensusPoints.length > 0) {
+                comment += `## 观点共识提炼\n\n`;
+                comment += `通过分析，我们发现同学们在以下几个方面达成了较广泛的共识：\n\n`;
+                
+                consensusPoints.forEach((point, index) => {
+                  comment += `${index + 1}. **${point.argument}**\n`;
+                  comment += `   这一观点得到了${point.supportingViewpoints}位同学的支持，体现了大家对这一问题的普遍看法。\n\n`;
+                });
+              }
+            }
+            
+            // 5. 观点多样性与对立分析
+            if ((generationSettings.emphasis === 'balanced' || generationSettings.emphasis === 'diversity') && 
+                analysis.opposingViews.length > 0) {
+              comment += `## 观点碰撞与多元视角\n\n`;
+              comment += `在讨论中，我们也观察到了不同观点之间的碰撞，这些多元视角共同构成了对事件的全面理解：\n\n`;
+              
+              analysis.opposingViews.forEach((opposingPair, index) => {
+                comment += `### ${index + 1}. 观点对立分析\n\n`;
+                
+                comment += `**观点A**: ${opposingPair.viewA.argument.substring(0, 100)}...\n`;
+                comment += `   - 支持者: ${opposingPair.viewA.supporters.slice(0, 3).join('、')}等${opposingPair.viewA.supporters.length}位同学\n\n`;
+                
+                comment += `**观点B**: ${opposingPair.viewB.argument.substring(0, 100)}...\n`;
+                comment += `   - 支持者: ${opposingPair.viewB.supporters.slice(0, 3).join('、')}等${opposingPair.viewB.supporters.length}位同学\n\n`;
+                
+                comment += `这两种观点看似对立，实则从不同角度丰富了我们对问题的认识。`;
+                comment += `观点A强调了${extractKeywords([opposingPair.viewA.argument])[0]}方面，`;
+                comment += `而观点B则关注了${extractKeywords([opposingPair.viewB.argument])[0]}维度，`;
+                comment += `将两者结合起来，能够帮助我们形成更为全面的判断。\n\n`;
+              });
+            }
+            
+            // 6. 情感倾向分析
+            comment += `## 情感倾向分析\n\n`;
+            comment += `通过对所有观点的情感分析，我们发现：\n\n`;
+            comment += `- ${analysis.sentiment.positive}% 的观点带有积极倾向，强调机遇和正面影响\n`;
+            comment += `- ${analysis.sentiment.neutral}% 的观点保持中立客观，注重事实陈述和理性分析\n`;
+            comment += `- ${analysis.sentiment.negative}% 的观点表达了担忧或批判性思考\n\n`;
+            
+            // 7. 综合结论 - 全新的观点整合
+            comment += `## 综合结论与思考\n\n`;
+            
+            // 根据设置的语气和重点生成不同的结论
+            switch (generationSettings.tone) {
+              case 'analytical':
+                comment += `基于以上分析，我们可以得出以下结论：\n\n`;
+                comment += `1. 学生们对这一事件的关注呈现多维度特征，涵盖了${analysis.topicDistribution.slice(0, 3).map(t => t.topic).join('、')}等多个方面。\n\n`;
+                comment += `2. 虽然存在一些观点分歧，但在${analysis.keywords[0]}等核心问题上已经形成了一定共识。\n\n`;
+                comment += `3. 整体情感倾向以${analysis.sentiment.neutral > analysis.sentiment.positive ? '中立客观' : '积极乐观'}为主，`;
+                comment += `反映了学生们在面对复杂问题时的理性态度。\n\n`;
+                break;
+                
+              case 'persuasive':
+                comment += `综合所有同学的观点，我们认为这一事件的意义远超表面现象。\n\n`;comment += `它不仅涉及${analysis.keywords[0]}等具体问题，更反映了${analysis.keywords[1]}等深层次议题。\n\n`;
+                comment += `通过这次讨论，我们看到了思想的碰撞与融合，也体会到了从多个角度思考问题的价值。\n\n`;
+                comment += `正如同学们在讨论中提到的，解决这一问题需要${analysis.keywords.slice(2, 5).join('、')}等多方面的努力与合作。\n\n`;
+                break;
+                
+              default:
+                comment += `综合所有学生的观点，我们可以看到大家对这一事件的多元解读和深度思考。\n\n`;
+                comment += `从${analysis.keywords[0]}到${analysis.keywords[1]}，从${analysis.topicDistribution[0].topic}到${analysis.topicDistribution[1].topic}，`;
+                comment += `同学们从不同角度提出了自己的见解，这些见解相互补充，共同构成了对这一事件的全面认识。\n\n`;
+                comment += `特别值得注意的是，虽然大家的观点各有侧重，但都体现了对社会问题的关注和思考深度，`;
+                comment += `展现了当代学生的社会责任感和独立思考能力。\n\n`;
+            }
+            
+             // 8. 结语
+             comment += `## 结语\n\n`;
+             comment += `本次观点整合分析不仅汇总了学生们的思考成果，更通过系统化的文本分析，`;
+             comment += `提炼出了隐藏在分散观点背后的核心主题和共识。`;
+             comment += `这种基于集体智慧的分析方法，为我们理解复杂问题提供了新的视角和思路。\n\n`;
+             comment += `生成时间：${new Date().toLocaleString()}\n`;
+             comment += `基于${newsViewpoints.length}条学生观点整合分析\n\n\n`;
+             
+             // 9. 添加完整的新闻评论部分 - 符合新闻评论的要求
+             comment += `---\n\n`;
+             comment += `# 完整新闻评论：${newsItem?.title}\n\n`;
+             comment += `## 事件回顾与背景分析\n\n`;
+             comment += `${newsItem?.content.substring(0, 200)}... 这一事件引发了广泛关注，`;
+             comment += `也激发了同学们的深入思考。通过对${newsViewpoints.length}位同学观点的整理分析，`;
+             comment += `我们得以从多元视角审视这一事件的意义与影响。\n\n`;
+             
+             comment += `## 核心观点梳理与深度解析\n\n`;
+             
+             // 根据语气生成不同风格的评论内容
+             if (generationSettings.tone === 'analytical') {
+               comment += `从分析性角度看，这一事件的核心矛盾在于${analysis.keywords[0]}与${analysis.keywords[1]}之间的平衡。`;
+               comment += `同学们的讨论主要围绕三个维度展开：\n\n`;
+               comment += `首先，在${analysis.topicDistribution[0].topic}层面，${Math.round(analysis.topicDistribution[0].percentage)}%的观点认为${analysis.mainArguments[0]?.argument || '这一问题需要从长远角度考量'}。`;
+               comment += `这一观点得到了广泛支持，反映了大家对${analysis.keywords[0]}的关注重点。\n\n`;
+               comment += `其次，在${analysis.topicDistribution[1].topic}方面，不同意见的碰撞较为明显。`;
+               if (analysis.opposingViews.length > 0) {
+                 comment += `一方观点强调${extractKeywords([analysis.opposingViews[0].viewA.argument])[0]}的重要性，`;
+                 comment += `另一方则更关注${extractKeywords([analysis.opposingViews[0].viewB.argument])[0]}的影响，`;
+                 comment += `这种多元视角有助于我们全面理解问题的复杂性。\n\n`;
+               }
+               comment += `最后，在${analysis.topicDistribution[2]?.topic || '实际应用'}层面，`;
+               comment += `部分观点提出了${analysis.keywords.slice(2, 4).join('、')}等具体建议，`;
+               comment += `体现了同学们将理论思考与实际问题解决相结合的能力。\n\n`;
+             } else if (generationSettings.tone === 'persuasive') {
+               comment += `综合各方观点，我们有充分理由相信，${newsItem?.title}这一事件的意义远超表面现象。\n\n`;
+               comment += `一方面，${analysis.mainArguments[0]?.argument || '这一问题关系到我们每个人的利益'}，`;
+               comment += `这一共识得到了${newsViewpoints.length}位同学中超过${Math.round((analysis.mainArguments[0]?.supportingViewpoints || 0) / newsViewpoints.length * 100)}%的支持。`;
+               comment += `这充分说明，${analysis.keywords[0]}已经成为社会关注的焦点。\n\n`;
+               comment += `另一方面，我们也不能忽视那些不同的声音。正如部分同学所指出的，`;
+               if (analysis.opposingViews.length > 0) {
+                 comment += `${analysis.opposingViews[0].viewB.argument.substring(0, 80)}...`;
+                 comment += `这些观点为我们提供了重要的警示，提醒我们在推进${analysis.keywords[0]}发展的同时，`;
+                 comment += `必须充分考虑${analysis.keywords[1]}等相关因素。\n\n`;
+               }
+               comment += `综合来看，解决这一问题需要${analysis.keywords.slice(2, 5).join('、')}等多方面的共同努力，`;
+               comment += `而开放、理性的讨论正是找到最佳解决方案的关键一步。\n\n`;
+             } else {
+               // 中立客观的评论风格
+               comment += `客观而言，${newsItem?.title}这一事件既带来了机遇，也带来了挑战。\n\n`;
+               comment += `从积极方面看，${analysis.sentiment.positive}%的观点认为${analysis.keywords[0]}的发展为${analysis.keywords[1]}带来了新的可能，`;
+               comment += `特别是在${analysis.topicDistribution[0].topic}领域，已经展现出明显的积极影响。\n\n`;
+               comment += `从挑战方面看，${analysis.sentiment.negative}%的观点表达了对${analysis.keywords[2]}等问题的担忧，`;
+               comment += `这些担忧主要集中在${analysis.topicDistribution[1].topic}方面。\n\n`;
+               comment += `值得注意的是，大多数同学（${analysis.sentiment.neutral}%）保持了客观中立的态度，`;
+               comment += `他们既看到了${analysis.keywords[0]}的潜力，也认识到了实现过程中可能面临的困难。`;
+               comment += `这种理性的思考方式，正是我们面对复杂社会问题时所需要的。\n\n`;
+             }
+             
+             comment += `## 思考与展望\n\n`;
+             comment += `通过这次讨论，我们不仅加深了对${newsItem?.title}这一事件的理解，`;
+             comment += `更体会到了集体智慧的价值。不同观点的碰撞与融合，`;
+             comment += `让我们对问题的认识更加全面和深入。\n\n`;
+             comment += `展望未来，${analysis.keywords[0]}的发展仍将是社会关注的焦点。`;
+             comment += `如何在促进${analysis.keywords[0]}发展的同时，`;
+             comment += `妥善解决${analysis.keywords[1]}、${analysis.keywords[2]}等相关问题，`;
+             comment += `将是我们需要持续思考的重要课题。\n\n`;
+             comment += `新闻评论生成时间：${new Date().toLocaleString()}\n`;
+             comment += `基于新闻文本分析与${newsViewpoints.length}条学生观点整合`;
+            
+            setGeneratedComment(comment);
+            setIsGenerating(false);
+            alert('已成功生成基于学生观点的综合评论！');
+          } catch (error) {
+            console.error('生成评论时出错:', error);
+            setGeneratedComment('生成评论时发生错误，请重试。');
+            setIsGenerating(false);
+            alert('评论生成失败，请重试');
+          }
+        }, 3000); // 增加延迟以模拟复杂的分析过程
+      };
+      
+      const copyToClipboard = () => {
+        navigator.clipboard.writeText(generatedComment)
+          .then(() => {
+            alert('评论已复制到剪贴板');
+          })
+          .catch(err => {
+            alert('复制失败，请手动复制');
+            console.error('复制失败:', err);
+          });
+      };
+      
+      // 初始化时设置一个基于当前新闻的模拟分析结果
+      React.useEffect(() => {
+        if (newsItem && !analysisResult) {
+          // 为了展示效果，预先生成一个模拟的分析结果
+          const mockAnalysis = {
+            keywords: ['人工智能', '教育', '应用', '挑战', '个性化', '学习', '数据', '隐私'],
+            sentiment: {
+              positive: 60,
+              neutral: 30,
+              negative: 10,
+            },
+            topicDistribution: [
+              { topic: '教育意义', count: 8, percentage: 40 },
+              { topic: '社会影响', count: 6, percentage: 30 },
+              { topic: '个人感受', count: 4, percentage: 20 },
+              { topic: '技术分析', count: 2, percentage: 10 },
+            ],
+            mainArguments: [
+              {
+                argument: '人工智能在教育中的应用前景广阔，可以提供个性化的学习方案',
+                supportingViewpoints: 8,
+                representativeQuotes: [
+                  '我认为AI在教育中的应用前景广阔，可以根据学生的学习情况提供个性化的学习方案，大大提高学习效率。',
+                  '人工智能技术能够分析学生的学习数据，从而提供更有针对性的教学内容。',
+                ],
+              },
+              {
+                argument: '教育的本质是人与人之间的交流和情感传递，这是AI无法替代的',
+                supportingViewpoints: 6,
+                representativeQuotes: [
+                  '虽然AI技术很先进，但教育的本质是人与人之间的交流和情感传递，这是AI无法替代的。',
+                  '教师的人文关怀和情感引导是教育中不可或缺的部分。',
+                ],
+              },
+              {
+                argument: '数据隐私是AI在教育应用中必须重视的问题',
+                supportingViewpoints: 4,
+                representativeQuotes: [
+                  '数据隐私是AI在教育应用中必须重视的问题，学生的个人学习数据需要得到妥善保护。',
+                  '在使用AI技术的同时，我们不能忽视数据安全和隐私保护的重要性。',
+                ],
+              },
+            ],
+            opposingViews: [
+              {
+                viewA: {
+                  argument: 'AI技术将极大提升教育效率，是未来教育发展的必然趋势',
+                  supporters: ['学生甲', '学生乙', '学生丙'],
+                },
+                viewB: {
+                  argument: '过度依赖AI可能会削弱传统教育中的人文价值和师生互动',
+                  supporters: ['学生丁', '学生戊', '学生己'],
+                },
+              },
+            ],
+          };
+          
+          setAnalysisResult(mockAnalysis);
+        }
+      }, [newsItem, analysisResult]);
+      
+      if (!newsItem) {
+        return React.createElement(
+          'div',
+          { className: 'flex items-center justify-center h-64' },
+          React.createElement('p', { className: 'text-gray-500 dark:text-gray-400' }, '未找到该新闻')
+        );
+      }
+      
+      return React.createElement(
+        'div',
+        { className: 'max-w-4xl mx-auto' },
+        React.createElement(
+          'div',
+          { className: 'flex justify-between items-center mb-6' },
+          React.createElement('h1', { className: 'text-2xl font-bold text-gray-900 dark:text-white' }, '学生观点智能整合分析'),
+          React.createElement(
+            'a',
+            {
+              href: `#/news/${id}`,
+              className: 'px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors'
+            },
+            React.createElement('i', { className: 'fa fa-arrow-left mr-1' }),
+            ' 返回'
+          )
+        ),
+        
+        // 新闻内容预览 - 简化版
+        React.createElement(
+          'div',
+          { className: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-6' },
+          React.createElement('h2', { className: 'text-lg font-semibold text-gray-900 dark:text-white' }, '新闻标题: ', newsItem.title),
+          React.createElement('p', { className: 'text-sm text-gray-500 dark:text-gray-400 mt-1' },
+            '参与学生数: ', new Set(newsViewpoints.map(vp => vp.userId)).size, ' | 收集到的观点数量: ', newsViewpoints.length
+          )
+        ),
+        
+        // 生成设置
+        React.createElement(
+          'div',
+          { className: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6' },
+          React.createElement('h2', { className: 'text-xl font-semibold text-gray-900 dark:text-white mb-4' }, '评论生成设置'),
+          
+          React.createElement(
+            'div',
+            { className: 'grid grid-cols-1 md:grid-cols-3 gap-4' },
+            React.createElement(
+              'div',
+              null,
+              React.createElement('label', { className: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' }, '评论长度'),
+              React.createElement('select', {
+                value: generationSettings.length,
+                onChange: (e) => setGenerationSettings({...generationSettings, length: e.target.value}),
+                className: 'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+              },
+                React.createElement('option', { value: 'short' }, '简短 (约300字)'),
+                React.createElement('option', { value: 'medium' }, '中等 (约600字)'),
+                React.createElement('option', { value: 'long' }, '详细 (约1000字)')
+              )
+            ),
+            
+            React.createElement(
+              'div',
+              null,
+              React.createElement('label', { className: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' }, '评论语气'),
+              React.createElement('select', {
+                value: generationSettings.tone,
+                onChange: (e) => setGenerationSettings({...generationSettings, tone: e.target.value}),
+                className: 'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+              },
+                React.createElement('option', { value: 'neutral' }, '中立客观'),
+                React.createElement('option', { value: 'analytical' }, '分析性'),
+                React.createElement('option', { value: 'persuasive' }, '说服性')
+              )
+            ),
+            
+            React.createElement(
+              'div',
+              null,
+              React.createElement('label', { className: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1' }, '强调重点'),
+              React.createElement('select', {
+                value: generationSettings.emphasis,
+                onChange: (e) => setGenerationSettings({...generationSettings, emphasis: e.target.value}),
+                className: 'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+              },
+                React.createElement('option', { value: 'balanced' }, '平衡呈现'),
+                React.createElement('option', { value: 'consensus' }, '强调共识'),
+                React.createElement('option', { value: 'diversity' }, '强调多元')
+              )
+            )
+          )
+        ),
+        
+        // 生成按钮
+        React.createElement(
+          'div',
+          { className: 'flex justify-center mb-6' },
+          React.createElement(
+            'button',
+            {
+              onClick: generateComment,
+              disabled: isGenerating,
+              className: 'px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-colors flex items-center transform hover:scale-105'
+            },
+            isGenerating ? (
+              React.createElement(
+                React.Fragment,
+                null,
+                React.createElement('i', { className: 'fa fa-brain fa-spin mr-2' }),
+                '正在分析学生观点并整合...'
+              )
+            ) : (
+              React.createElement(
+                React.Fragment,
+                null,
+                React.createElement('i', { className: 'fa fa-comments mr-2' }),
+                '生成学生观点分析与完整新闻评论'
+              )
+            )
+          )
+        ),
+        
+        // 文本分析结果预览
+        analysisResult && React.createElement(
+          'div',
+          { className: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6' },
+          React.createElement(
+            'h2',
+            { className: 'text-xl font-semibold text-gray-900 dark:text-white mb-4' },
+            React.createElement('i', { className: 'fa fa-pie-chart mr-2' }),
+            '文本分析结果预览'
+          ),
+          
+          React.createElement(
+            'div',
+            { className: 'grid grid-cols-1 md:grid-cols-2 gap-4' },
+            // 核心关键词
+            React.createElement(
+              'div',
+              { className: 'bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg' },
+              React.createElement('h3', { className: 'font-medium text-gray-900 dark:text-white mb-2' }, '核心关键词'),
+              React.createElement(
+                'div',
+                { className: 'flex flex-wrap gap-2' },
+                analysisResult.keywords.map((keyword, index) => React.createElement(
+                  'span',
+                  { key: index, className: 'px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full text-xs' },
+                  keyword
+                ))
+              )
+            ),
+            
+            // 情感倾向
+            React.createElement(
+              'div',
+              { className: 'bg-green-50 dark:bg-green-900/20 p-4 rounded-lg' },
+              React.createElement('h3', { className: 'font-medium text-gray-900 dark:text-white mb-2' }, '情感倾向'),
+              React.createElement(
+                'div',
+                { className: 'space-y-1' },
+                React.createElement(
+                  'div',
+                  { className: 'flex justify-between items-center' },
+                  React.createElement('span', { className: 'text-xs text-gray-600 dark:text-gray-400' }, '积极:'),
+                  React.createElement(
+                    'div',
+                    { className: 'w-3/5 bg-gray-200 dark:bg-gray-700 rounded-full h-2' },
+                    React.createElement('div', {
+                      className: 'bg-green-500 h-2 rounded-full',
+                      style: { width: `${analysisResult.sentiment.positive}%` }
+                    })
+                  ),
+                  React.createElement('span', { className: 'text-xs font-medium text-green-600' }, `${analysisResult.sentiment.positive}%`)
+                ),
+                React.createElement(
+                  'div',
+                  { className: 'flex justify-between items-center' },
+                  React.createElement('span', { className: 'text-xs text-gray-600 dark:text-gray-400' }, '中立:'),
+                  React.createElement(
+                    'div',
+                    { className: 'w-3/5 bg-gray-200 dark:bg-gray-700 rounded-full h-2' },
+                    React.createElement('div', {
+                      className: 'bg-blue-500 h-2 rounded-full',
+                      style: { width: `${analysisResult.sentiment.neutral}%` }
+                    })
+                  ),
+                  React.createElement('span', { className: 'text-xs font-medium text-blue-600' }, `${analysisResult.sentiment.neutral}%`)
+                ),
+                React.createElement(
+                  'div',
+                  { className: 'flex justify-between items-center' },
+                  React.createElement('span', { className: 'text-xs text-gray-600 dark:text-gray-400' }, '消极:'),
+                  React.createElement(
+                    'div',
+                    { className: 'w-3/5 bg-gray-200 dark:bg-gray-700 rounded-full h-2' },
+                    React.createElement('div', {
+                      className: 'bg-red-500 h-2 rounded-full',
+                      style: { width: `${analysisResult.sentiment.negative}%` }
+                    })
+                  ),
+                  React.createElement('span', { className: 'text-xs font-medium text-red-600' }, `${analysisResult.sentiment.negative}%`)
+                )
+              )
+            ),
+            
+            // 主题分布
+            React.createElement(
+              'div',
+              { className: 'bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg' },
+              React.createElement('h3', { className: 'font-medium text-gray-900 dark:text-white mb-2' }, '主题分布'),
+              React.createElement(
+                'div',
+                { className: 'space-y-1' },
+                analysisResult.topicDistribution.slice(0, 3).map((topic, index) => React.createElement(
+                  'div',
+                  { key: index, className: 'flex justify-between items-center' },
+                  React.createElement('span', { className: 'text-xs text-gray-600 dark:text-gray-400' }, `${topic.topic}:`),
+                  React.createElement(
+                    'div',
+                    { className: 'w-2/5 bg-gray-200 dark:bg-gray-700 rounded-full h-2' },
+                    React.createElement('div', {
+                      className: 'bg-purple-500 h-2 rounded-full',
+                      style: { width: `${topic.percentage}%` }
+                    })
+                  ),
+                  React.createElement('span', { className: 'text-xs font-medium text-purple-600' }, `${topic.percentage}%`)
+                ))
+              )
+            ),
+            
+            // 主要论点概览
+            React.createElement(
+              'div',
+              { className: 'bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg' },
+              React.createElement('h3', { className: 'font-medium text-gray-900 dark:text-white mb-2' }, '主要论点数量'),
+              React.createElement(
+                'div',
+                { className: 'flex items-center justify-center' },
+                React.createElement('div', { className: 'text-4xl font-bold text-amber-600 dark:text-amber-400' }, analysisResult.mainArguments.length),
+                React.createElement('div', { className: 'ml-3 text-sm text-gray-600 dark:text-gray-400' }, '个核心论点')
+              ),
+              analysisResult.opposingViews.length > 0 && React.createElement(
+                'div',
+                { className: 'mt-2 text-center text-sm text-gray-600 dark:text-gray-400' },
+                '检测到 ', analysisResult.opposingViews.length, ' 组对立观点'
+              )
+            )
+          )
+        ),
+        
+        // 生成结果
+        React.createElement(
+          'div',
+          { className: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6' },
+          React.createElement(
+            'div',
+            { className: 'flex justify-between items-center mb-4' },
+            React.createElement(
+              'h2',
+              { className: 'text-xl font-semibold text-gray-900 dark:text-white' },
+              React.createElement('i', { className: 'fa fa-file-text-o mr-2' }),
+              '学生观点综合评论'
+            ),
+            React.createElement(
+              'button',
+              {
+                onClick: copyToClipboard,
+                className: 'px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm',
+                disabled: !generatedComment
+              },
+              React.createElement('i', { className: 'fa fa-copy mr-1' }),
+              ' 复制'
+            )
+          ),
+          
+          React.createElement(
+            'div',
+            { className: 'prose dark:prose-invert max-w-none overflow-auto max-h-[700px] p-6 bg-gray-50 dark:bg-gray-900 rounded-lg shadow-inner' },
+            generatedComment ? (
+              generatedComment.split('\n').map((line, index) => {
+                if (line.startsWith('## ')) {
+                  return React.createElement('h2', { key: index, className: 'text-xl font-semibold mt-6 mb-3' }, line.substring(3));
+                } else if (line.startsWith('### ')) {
+                  return React.createElement('h3', { key: index, className: 'text-lg font-semibold mt-4 mb-2' }, line.substring(4));
+                } else if (line.startsWith('- ')) {
+                  return React.createElement('p', { key: index, className: 'ml-5' }, line);
+                } else if (line.startsWith('# ')) {
+                  return React.createElement('h1', { key: index, className: 'text-2xl font-bold mt-2 mb-4' }, line.substring(2));
+                } else if (line.startsWith('**')) {
+                  // 加粗文本
+                  const content = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                  return React.createElement('p', { key: index, dangerouslySetInnerHTML: { __html: content } });
+                } else if (line.trim() === '') {
+                  return React.createElement('br', { key: index });
+                } else {
+                  return React.createElement('p', { key: index }, line);
+                }
+              })
+            ) : (
+              React.createElement(
+                'div',
+                { className: 'text-center py-12' },
+                React.createElement('i', { className: 'fa fa-comments text-5xl text-gray-300 dark:text-gray-600 mb-4' }),
+                React.createElement('p', { className: 'text-gray-500 dark:text-gray-400 text-lg' }, '点击上方按钮，系统将分析学生观点并生成综合评论'),
+                React.createElement('p', { className: 'text-gray-400 dark:text-gray-500 text-sm mt-2' }, '基于文本分析技术，整合不同角度观点，形成全新见解')
+              )
+            )
+          )
+        ),
+        
+        // 使用说明
+        React.createElement(
+          'div',
+          { className: 'mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg' },
+          React.createElement(
+            'h3',
+            { className: 'flex items-center text-blue-800 dark:text-blue-300 font-medium mb-2' },
+            React.createElement('i', { className: 'fa fa-info-circle mr-2' }),
+            '功能说明'
+          ),
+          React.createElement(
+            'ul',
+            { className: 'text-sm text-blue-700 dark:text-blue-200 space-y-1' },
+            React.createElement(
+              'li',
+              { className: 'flex items-start' },
+              React.createElement('i', { className: 'fa fa-check-circle mr-2 mt-0.5' }),
+              React.createElement('span', null, '系统通过自然语言处理技术对所有学生观点进行深度文本分析')
+            ),
+            React.createElement(
+              'li',
+              { className: 'flex items-start' },
+              React.createElement('i', { className: 'fa fa-check-circle mr-2 mt-0.5' }),
+              React.createElement('span', null, '自动提取核心论点、智能过滤无效关键词、分析情感倾向和观点分布')
+            ),
+            React.createElement(
+              'li',
+              { className: 'flex items-start' },
+              React.createElement('i', { className: 'fa fa-check-circle mr-2 mt-0.5' }),
+              React.createElement('span', null, '生成两部分内容：1) 学生观点综合分析报告 2) 符合新闻评论规范的完整评论')
+            ),
+            React.createElement(
+              'li',
+              { className: 'flex items-start' },
+              React.createElement('i', { className: 'fa fa-check-circle mr-2 mt-0.5' }),
+              React.createElement('span', null, '完整新闻评论整合了学生观点与新闻文本分析，语言符合专业新闻评论要求')
+            ),
+            React.createElement(
+              'li',
+              { className: 'flex items-start' },
+              React.createElement('i', { className: 'fa fa-check-circle mr-2 mt-0.5' }),
+              React.createElement('span', null, '您可以根据需要调整评论长度、语气和强调重点')
+            )
+          )
+        )
+      );
+    }
+    
+    // 观点可视化页面
+    function ViewpointVisualization() {
+      const { id } = new URLSearchParams(window.location.hash.split('?')[1] || '');
+      const { news } = useNews();
+      const { viewpoints } = useViewpoints();
+      
+      const [chartType, setChartType] = React.useState('bar');
+      
+      const newsItem = news.find(item => item.id === id);
+      const newsViewpoints = viewpoints.filter(vp => vp.newsId === id);
+      
+      if (!newsItem) {
+        return React.createElement(
+          'div',
+          { className: 'flex items-center justify-center h-64' },
+          React.createElement('p', { className: 'text-gray-500 dark:text-gray-400' }, '未找到该新闻')
+        );
+      }
+      
+      // 按类别统计观点数量和赞同数
+      const categoryStats = newsViewpoints.reduce((acc, viewpoint) => {
+        if (!acc[viewpoint.category]) {
+          acc[viewpoint.category] = {
+            count: 0,
+            agreeCount: 0,
+            viewpoints: [],
+          };
+        }
+        
+        acc[viewpoint.category].count += 1;
+        acc[viewpoint.category].agreeCount += viewpoint.agreeCount;
+        acc[viewpoint.category].viewpoints.push(viewpoint);
+        
+        return acc;
+      }, {});
+      
+      // 准备图表数据
+      const barChartData = Object.entries(categoryStats).map(([category, stats]) => ({
+        name: category,
+        观点数量: stats.count,
+        赞同总数: stats.agreeCount,
+      }));
+      
+      const pieChartData = Object.entries(categoryStats).map(([category, stats]) => ({
+        name: category,
+        value: stats.count,
+      }));
+      
+      // 图表颜色
+      const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+      
+      return React.createElement(
+        'div',
+        { className: 'max-w-4xl mx-auto' },
+        React.createElement(
+          'div',
+          { className: 'flex justify-between items-center mb-6' },
+          React.createElement('h1', { className: 'text-2xl font-bold text-gray-900 dark:text-white' }, '观点图谱可视化'),
+          React.createElement(
+            'div',
+            { className: 'flex items-center space-x-3' },
+            React.createElement(
+              'div',
+              { className: 'inline-flex rounded-md shadow-sm', role: 'group' },
+              React.createElement(
+                'button',
+                {
+                  type: 'button',
+                  onClick: () => setChartType('bar'),
+                  className: `px-3 py-1 text-sm font-medium rounded-l-lg ${
+                    chartType === 'bar' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`
+                },
+                '柱状图'
+              ),
+              React.createElement(
+                'button',
+                {
+                  type: 'button',
+                  onClick: () => setChartType('pie'),
+                  className: `px-3 py-1 text-sm font-medium rounded-r-lg ${
+                    chartType === 'pie' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`
+                },
+                '饼图'
+              )
+            ),
+            
+            React.createElement(
+              'a',
+              {
+                href: `#/news/${id}`,
+                className: 'px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors'
+              },
+              React.createElement('i', { className: 'fa fa-arrow-left mr-1' }),
+              ' 返回'
+            )
+          )
+        ),
+        
+        // 新闻标题
+        React.createElement(
+          'div',
+          { className: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-6' },
+          React.createElement('h2', { className: 'text-lg font-semibold text-gray-900 dark:text-white' }, '新闻标题: ', newsItem.title),
+          React.createElement('p', { className: 'text-sm text-gray-500 dark:text-gray-400 mt-1' },
+            '总观点数: ', newsViewpoints.length, ' | 总赞同数: ', Object.values(categoryStats).reduce((sum, stats) => sum + stats.agreeCount, 0)
+          )
+        ),
+        
+        // 图表容器
+        React.createElement(
+          'div',
+          { className: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6' },
+          React.createElement('h2', { className: 'text-xl font-semibold text-gray-900 dark:text-white mb-4' }, '观点分布统计'),
+          
+          React.createElement(
+            'div',
+            { className: 'h-80' },
+            chartType === 'bar' ? (
+              React.createElement(
+                Recharts.BarChart,
+                {
+                  data: barChartData,
+                  margin: { top: 20, right: 30, left: 20, bottom: 5 }
+                },
+                React.createElement(Recharts.CartesianGrid, { strokeDasharray: '3 3' }),
+                React.createElement(Recharts.XAxis, { dataKey: 'name' }),
+                React.createElement(Recharts.YAxis, null),
+                React.createElement(Recharts.Tooltip, { contentStyle: { backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: '8px', border: '1px solid #e2e8f0' } }),
+                React.createElement(Recharts.Legend, null),
+                React.createElement(Recharts.Bar, { dataKey: '观点数量', fill: '#8884d8', radius: [4, 4, 0, 0] }),
+                React.createElement(Recharts.Bar, { dataKey: '赞同总数', fill: '#82ca9d', radius: [4, 4, 0, 0] })
+              )
+            ) : (
+              React.createElement(
+                Recharts.PieChart,
+                null,
+                React.createElement(
+                  Recharts.Pie,
+                  {
+                    data: pieChartData,
+                    cx: '50%',
+                    cy: '50%',
+                    labelLine: true,
+                    label: ({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`,
+                    outerRadius: 100,
+                    fill: '#8884d8',
+                    dataKey: 'value'
+                  },
+                  pieChartData.map((entry, index) => React.createElement(
+                    Recharts.Cell,
+                    { key: `cell-${index}`, fill: COLORS[index % COLORS.length] }
+                  ))
+                ),
+                React.createElement(Recharts.Tooltip, {
+                  formatter: (value) => [`${value} 条观点`, '数量'],
+                  contentStyle: { backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: '8px', border: '1px solid #e2e8f0' }
+                }),
+                React.createElement(Recharts.Legend, null)
+              )
+            )
+          )
+        ),
+        
+        // 各类别观点详情
+        React.createElement(
+          'div',
+          { className: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6' },
+          React.createElement('h2', { className: 'text-xl font-semibold text-gray-900 dark:text-white mb-4' }, '观点详情分析'),
+          
+          React.createElement(
+            'div',
+            { className: 'space-y-6' },
+            Object.entries(categoryStats).map(([category, stats]) => React.createElement(
+              'div',
+              { key: category, className: 'border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden' },
+              React.createElement('div', { className: 'bg-gray-50 dark:bg-gray-900 px-4 py-3' },
+                React.createElement('h3', { className: 'font-medium text-gray-900 dark:text-white' }, category)
+              ),
+              
+              React.createElement(
+                'div',
+                { className: 'p-4' },
+                React.createElement(
+                  'div',
+                  { className: 'flex flex-wrap gap-3 mb-3' },
+                  React.createElement('span', { className: 'px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-full text-sm' }, `${stats.count} 条观点`),
+                  React.createElement('span', { className: 'px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 rounded-full text-sm' }, `${stats.agreeCount} 个赞同`),
+                  React.createElement('span', { className: 'px-3 py-1 bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200 rounded-full text-sm' }, `平均赞同: ${Math.round(stats.agreeCount / stats.count)}`)
+                ),
+                
+                // 显示赞同数最高的观点
+                stats.viewpoints.length > 0 && React.createElement(
+                  'div',
+                  { className: 'mt-3' },
+                  React.createElement('h4', { className: 'text-sm font-medium text-gray-700 dark:text-gray-300 mb-2' }, '最受欢迎的观点:'),
+                  React.createElement(
+                    'div',
+                    { className: 'bg-gray-50 dark:bg-gray-900 p-3 rounded-lg' },
+                    React.createElement('p', { className: 'text-gray-900 dark:text-white text-sm' },
+                      stats.viewpoints.sort((a, b) => b.agreeCount - a.agreeCount)[0].content
+                    ),
+                    React.createElement(
+                      'div',
+                      { className: 'flex justify-between items-center mt-2' },
+                      React.createElement('span', { className: 'text-xs text-gray-500 dark:text-gray-400' },
+                        stats.viewpoints.sort((a, b) => b.agreeCount - a.agreeCount)[0].userName
+                      ),
+                      React.createElement(
+                        'span',
+                        { className: 'text-xs text-blue-600 flex items-center' },
+                        React.createElement('i', { className: 'fa fa-thumbs-up mr-1' }),
+                        stats.viewpoints.sort((a, b) => b.agreeCount - a.agreeCount)[0].agreeCount
+                      )
+                    )
+                  )
+                )
+              )
+            ))
+          )
+        )
+      );
+    }
+    
+    // 主应用组件
+    function App() {
+      const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+      const [user, setUser] = React.useState(null);
+    
+      const logout = () => {
+        setIsAuthenticated(false);
+        setUser(null);
+      };
+    
+      // 处理路由
+      const handleRouteChange = () => {
+        const hash = window.location.hash.substring(1) || '/';
+        renderContent(hash);
+      };
+    
+      // 组件挂载时检查认证状态
+      React.useEffect(() => {
+        // 这里可以添加从localStorage恢复认证状态的逻辑
+        // 为了演示，我们直接设置一个模拟用户
+        const mockUser = localStorage.getItem('mockUser');
+        if (mockUser) {
+          setUser(JSON.parse(mockUser));
+          setIsAuthenticated(true);
+        }
+        
+        // 监听hash变化
+        window.addEventListener('hashchange', handleRouteChange);
+        handleRouteChange(); // 初始加载时处理路由
+        
+        return () => {
+          window.removeEventListener('hashchange', handleRouteChange);
+        };
+      }, []);
+    
+      // 保存用户状态
+      React.useEffect(() => {
+        if (user) {
+          localStorage.setItem('mockUser', JSON.stringify(user));
+        } else {
+          localStorage.removeItem('mockUser');
+        }
+      }, [user]);
+    
+      // 渲染内容
+      const renderContent = (hash) => {
+        const root = document.getElementById('root');
+        
+        // 清除现有内容
+        root.innerHTML = '';
+        
+        // 根据hash渲染不同的组件
+        const renderComponent = (component) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'min-h-screen flex flex-col';
+          ReactDOM.createRoot(wrapper).render(component);
+          root.appendChild(wrapper);
+        };
+        
+        if (isAuthenticated) {
+          // 已登录状态
+          renderComponent(
+            React.createElement(
+              AuthContext.Provider,
+              {
+                value: { isAuthenticated, user, setIsAuthenticated, setUser, logout }
+              },
+              React.createElement(
+                React.Fragment,
+                null,
+                React.createElement(Navbar, null),
+                React.createElement(
+                  'div',
+                  { className: 'flex min-h-screen bg-gray-50 dark:bg-gray-900' },
+                  React.createElement(Sidebar, null),
+                  React.createElement(
+                    'main',
+                    { className: 'flex-1 p-4 md:p-6 transition-all duration-300' },
+                    renderPageContent(hash)
+                  )
+                )
+              )
+            )
+          );
+        } else {
+          // 未登录状态
+          renderComponent(
+            React.createElement(
+              AuthContext.Provider,
+              {
+                value: { isAuthenticated, user, setIsAuthenticated, setUser, logout }
+              },
+              React.createElement(Login, null)
+            )
+          );
+        }
+      };
+    
+      // 根据hash渲染页面内容
+      const renderPageContent = (hash) => {
+        if (hash === '/teacher') {
+          return React.createElement(TeacherDashboard, null);
+        } else if (hash === '/student') {
+          return React.createElement(StudentView, null);
+        } else if (hash.startsWith('/news/')) {
+          const id = hash.split('/')[2];
+          return React.createElement(NewsDetail, { id });
+        } else if (hash.startsWith('/comment-generation/')) {
+          const id = hash.split('/')[2];
+          return React.createElement(CommentGeneration, { id });
+        } else if (hash.startsWith('/viewpoint-visualization/')) {
+          const id = hash.split('/')[2];
+          return React.createElement(ViewpointVisualization, { id });} else {
+          // 其他路由显示空组件或重定向
+          return React.createElement(Empty, null);
+        }
+      };
+    
+      // 初始渲染
+      React.useEffect(() => {
+        handleRouteChange();
+      }, [isAuthenticated, user]);
+    
+      return null; // 主渲染逻辑在useEffect中
+    }
+    
+    // 渲染应用
+    const root = document.getElementById('root');
+    ReactDOM.createRoot(root).render(React.createElement(App, null));
+  </script>
+</body>
+</html>
