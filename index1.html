@@ -2878,21 +2878,16 @@
         setUser(null);
       };
     
-   // 处理路由
+      // 处理路由
       const handleRouteChange = () => {
-        // 每次路由变化时都检查认证状态
-        const mockUser = localStorage.getItem('mockUser');
-        if (mockUser && !isAuthenticated) {
-          setUser(JSON.parse(mockUser));
-          setIsAuthenticated(true);
-        }
-        
         const hash = window.location.hash.substring(1) || '/';
         renderContent(hash);
       };
     
       // 组件挂载时检查认证状态
       React.useEffect(() => {
+        // 这里可以添加从localStorage恢复认证状态的逻辑
+        // 为了演示，我们直接设置一个模拟用户
         const mockUser = localStorage.getItem('mockUser');
         if (mockUser) {
           setUser(JSON.parse(mockUser));
@@ -2959,12 +2954,6 @@
           );
         } else {
           // 未登录状态
-          // 对于需要认证的页面，重定向到登录页
-          if (hash !== '/login' && hash !== '/') {
-            window.location.hash = '/login';
-            return;
-          }
-          
           renderComponent(
             React.createElement(
               AuthContext.Provider,
@@ -2977,40 +2966,21 @@
         }
       };
     
-       // 根据hash渲染页面内容
+      // 根据hash渲染页面内容
       const renderPageContent = (hash) => {
         if (hash === '/teacher') {
-          if (user?.role !== 'teacher') {
-            window.location.hash = '/student';
-            return React.createElement('div', null, '重定向中...');
-          }
           return React.createElement(TeacherDashboard, null);
         } else if (hash === '/student') {
-          if (user?.role !== 'student') {
-            window.location.hash = '/teacher';
-            return React.createElement('div', null, '重定向中...');
-          }
           return React.createElement(StudentView, null);
         } else if (hash.startsWith('/news/')) {
           const id = hash.split('/')[2];
           return React.createElement(NewsDetail, { id });
         } else if (hash.startsWith('/comment-generation/')) {
           const id = hash.split('/')[2];
-          if (user?.role !== 'teacher') {
-            alert('只有教师可以访问此功能');
-            window.location.hash = '/student';
-            return React.createElement('div', null, '重定向中...');
-          }
           return React.createElement(CommentGeneration, { id });
         } else if (hash.startsWith('/viewpoint-visualization/')) {
           const id = hash.split('/')[2];
-          if (user?.role !== 'teacher') {
-            alert('只有教师可以访问此功能');
-            window.location.hash = '/student';
-            return React.createElement('div', null, '重定向中...');
-          }
-          return React.createElement(ViewpointVisualization, { id });
-        } else {
+          return React.createElement(ViewpointVisualization, { id });} else {
           // 其他路由显示空组件或重定向
           return React.createElement(Empty, null);
         }
